@@ -1,0 +1,41 @@
+AT+CBC<CR><LF>: Đo điện áp VBAT.
+AT<CR><LF>: Kiểm tra module có hoạt động không
+ATEx<CR><LF>: Bật(x=1) hoặc tắt(x=0) chế độ phản hổi lệnh vừa gửi(nên tắt)
+AT+CPIN?<CR><LF>: Kiểm tra SIMCARD
+AT+CSQ<CR><LF>: Kiểm tra chất lượng sóng
+AT+COPS?<CR><LF>: Kiểm tra nhà mạng
+ATD0373529544;<CR><LF>: Gọi điện thoại đến số 0373529544 
+ATA<CR><LF>: Chấp nhận cuộc gọi đến
+ATH<CR><LF>: Hủy cuộc gọi đến
+AT+CUSD=1,"*101##"<CR><LF>: Kiểm tra số dư tk
+
+AT+CMGF=x<CR><LF>: Cấu hình tin nhắn (x=0: DPU, x=1: dạng ký tự)
+AT+IPR=xxxx<CR><LF>: Cấu hình tốc độ baud là xxxx 
+AT+CNMI=2,x,0,0<CR><LF>: Chọn x=1(chỉ báo vị trí lưu tin nhắn) hoặc x=2(hiển thị ra ngay nội dung tin nhắn)
+
+AT&W<CR><LF>: Lưu các cái đã cấu hình.
+
+AT+CMGR=x<CR><LF>: Đọc tin nhắn tại vị trí lưu x
+AT+CMGD=x<CR><LF>: Xóa tin nhắn tại vị trí lưu x
+
+AT+CMGS="sodienthoai"<CR><LF>: Gửi tin nhắn cho sodienthoai. 
+VD: AT+CMGS="0373529544"<CR><LF>
+Sau dòng lệnh này sẽ nhận được '>' (mã HEX là 0x3C), bây giờ có thể nhập vào nội dung tin nhắn,
+nhập tiếp 0x1A để gửi tin nhắn đi hoặc 0x1B để hủy gửi tin nhắn.
+(Trên Hercules 0x1A = $1A)
+
+AT+CPOWD=1<CR><LF>: Tắt SIM.
+AT+CMTE<CR><LF>: Đọc nhiệt độ.
+
+AT+SAPBR=1,1<CR><LF>: Bật GPRS.
+AT+SAPBR=0,1<CR><LF>: Tắt GPRS.
+AT+HTTPTERM<CR><LF>: Ngắt HTTP hiện tại.
+AT+HTTPINIT<CR><LF>: Khởi tạo HTTP.
+*AT+HTTPPARA="CID",1<CR><LF>
+AT+HTTPSSL=1<CR><LF>: Dùng kết nối SSL secure (nếu Host hỗ trợ SSL).
+AT+HTTPSSL?<CR><LF>: Kiểm tra SSL (nếu Host hỗ trợ SSL).
+AT+HTTPPARA=URL,"link"<CR><LF>: Kết nối tới link.
+AT+HTTPACTION=0<CR><LF> Chọn cách thức GET và nhận về HTTP Code.
+AT+HTTPREAD<CR><LF>: Bắt đầu đọc data.
+
+AT+CIPSHUT<CR><LF>

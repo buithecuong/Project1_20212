@@ -1,0 +1,10 @@
+Removed Pin From Net: NetName=CLK_I Pin=X1-1
+Removed Pin From Net: NetName=CLK_O Pin=X1-2
+Change Component Designator: OldDesignator=Y1 NewDesignator=Y2
+Added Component: Designator=Y1(Thach Anh 2 chan SMD5032)
+Add component (AddParameter): Name = "Value"; Value = "4Mhz"; VariantName = "[No Variations]"
+Added Pin To Net: NetName=CLK_I Pin=Y1-1
+Added Pin To Net: NetName=CLK_O Pin=Y1-2
+Added Room: Name=Designator
+Added Room: Name=Designator
+Added Room: Name=Designator

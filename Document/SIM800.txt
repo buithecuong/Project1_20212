@@ -1,0 +1,14 @@
+Nguồn cấp 3.4V-4.4V. Recommend là 4V.
+Nguồn có thể cấp dòng 2A.
+
+VBAT: 1 tụ tantalum 100uF, 1 tụ gốm 1uF~10uF, 1 tụ 33pF và 1 tụ 10pF.
+
+Pin Li-ion nối trực tiếp với VBAT. Tổng trở kháng giữa Pin và VBAT nhỏ hơn 150m Ôm. 
+
+Khoảng cách từ chân VBAT đến nguồn ít nhất 60mil(1.5mm). IC và tụ bypass càng gần càng tốt. Điện áp VBAT rơi xuống < 3V thì sim tự động reset.
+
+Bật SIM800: Bằng cách pull down chân PWRKEY ít nhất 1s và sau đó release(pull up?)  
+
+Tắt SIM800: Tương tự bật SIM800
+ 
+SIM socket cách xa ăng ten GSM, đường RF, VBAT, đường tín hiệu tốc độ cao

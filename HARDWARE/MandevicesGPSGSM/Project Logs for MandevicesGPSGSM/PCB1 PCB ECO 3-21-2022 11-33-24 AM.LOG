@@ -1,0 +1,9 @@
+Removed Pin From Net: NetName=LIPO_CHARGER Pin=C4-3
+Removed Pin From Net: NetName=MCU_RESET Pin=U7-14
+Change Component Comment : Designator=C4 Old Comment=-                  + New Comment=Pad Lipo Battery
+Change Component Designator: OldDesignator=CLK DIO GND 3V3 NewDesignator=H1
+Change Component Designator: OldDesignator=Switch NewDesignator=C1
+Added Pin To Net: NetName=MCU_RESET Pin=U7-7
+Added Room: Name=Designator
+Added Room: Name=Designator
+Added Room: Name=Designator

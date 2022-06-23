@@ -1,0 +1,14 @@
+Removed Pin From Net: NetName=OSC_OUT Pin=X2-1
+Removed Pin From Net: NetName=OSC_IN Pin=X2-2
+Removed Member From Class: ClassName=Designator Member=X2
+Change Component Footprint: Designator=SW2 Old Footprint=SW2 New Footprint=SW1-SMD
+Change Component Footprint: Designator=SW3 Old Footprint=SW2 New Footprint=SW1-SMD
+Change Component Designator: OldDesignator=3 NewDesignator=U8
+Added Component: Designator=Y1(Thach Anh 2 chan SMD5032)
+Add component (AddParameter): Name = "Value"; Value = "4Mhz"; VariantName = "[No Variations]"
+Added Pin To Net: NetName=OSC_OUT Pin=Y1-1
+Added Pin To Net: NetName=OSC_IN Pin=Y1-2
+Added Member To Class: ClassName=Designator Member=Component Y1 8Mhz
+Added Room: Name=Designator
+Added Room: Name=Designator
+Added Room: Name=Designator

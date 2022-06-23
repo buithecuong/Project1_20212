@@ -1,0 +1,4 @@
+Change Component Footprint: Designator=LED1 Old Footprint=LED-3 New Footprint=LED-0805-Red
+Added Room: Name=Designator
+Added Room: Name=Designator
+Added Room: Name=Designator

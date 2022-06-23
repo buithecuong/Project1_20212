@@ -1,0 +1,691 @@
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cccseB6j.s 			page 1
+
+
+   1              		.cpu cortex-m3
+   2              		.arch armv7-m
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"MQTTSerializePublish.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.MQTTSerialize_publishLength,"ax",%progbits
+  18              		.align	1
+  19              		.global	MQTTSerialize_publishLength
+  20              		.syntax unified
+  21              		.thumb
+  22              		.thumb_func
+  24              	MQTTSerialize_publishLength:
+  25              	.LVL0:
+  26              	.LFB3:
+  27              		.file 1 "Core/Src/MQTTSerializePublish.c"
+   1:Core/Src/MQTTSerializePublish.c **** /*******************************************************************************
+   2:Core/Src/MQTTSerializePublish.c ****  * Copyright (c) 2014 IBM Corp.
+   3:Core/Src/MQTTSerializePublish.c ****  *
+   4:Core/Src/MQTTSerializePublish.c ****  * All rights reserved. This program and the accompanying materials
+   5:Core/Src/MQTTSerializePublish.c ****  * are made available under the terms of the Eclipse Public License v1.0
+   6:Core/Src/MQTTSerializePublish.c ****  * and Eclipse Distribution License v1.0 which accompany this distribution.
+   7:Core/Src/MQTTSerializePublish.c ****  *
+   8:Core/Src/MQTTSerializePublish.c ****  * The Eclipse Public License is available at
+   9:Core/Src/MQTTSerializePublish.c ****  *    http://www.eclipse.org/legal/epl-v10.html
+  10:Core/Src/MQTTSerializePublish.c ****  * and the Eclipse Distribution License is available at
+  11:Core/Src/MQTTSerializePublish.c ****  *   http://www.eclipse.org/org/documents/edl-v10.php.
+  12:Core/Src/MQTTSerializePublish.c ****  *
+  13:Core/Src/MQTTSerializePublish.c ****  * Contributors:
+  14:Core/Src/MQTTSerializePublish.c ****  *    Ian Craggs - initial API and implementation and/or initial documentation
+  15:Core/Src/MQTTSerializePublish.c ****  *    Ian Craggs - fix for https://bugs.eclipse.org/bugs/show_bug.cgi?id=453144
+  16:Core/Src/MQTTSerializePublish.c ****  *******************************************************************************/
+  17:Core/Src/MQTTSerializePublish.c **** 
+  18:Core/Src/MQTTSerializePublish.c **** #include "MQTTPacket.h"
+  19:Core/Src/MQTTSerializePublish.c **** #include "StackTrace.h"
+  20:Core/Src/MQTTSerializePublish.c **** 
+  21:Core/Src/MQTTSerializePublish.c **** #include <string.h>
+  22:Core/Src/MQTTSerializePublish.c **** 
+  23:Core/Src/MQTTSerializePublish.c **** 
+  24:Core/Src/MQTTSerializePublish.c **** /**
+  25:Core/Src/MQTTSerializePublish.c ****   * Determines the length of the MQTT publish packet that would be produced using the supplied para
+  26:Core/Src/MQTTSerializePublish.c ****   * @param qos the MQTT QoS of the publish (packetid is omitted for QoS 0)
+  27:Core/Src/MQTTSerializePublish.c ****   * @param topicName the topic name to be used in the publish  
+  28:Core/Src/MQTTSerializePublish.c ****   * @param payloadlen the length of the payload to be sent
+  29:Core/Src/MQTTSerializePublish.c ****   * @return the length of buffer needed to contain the serialized version of the packet
+  30:Core/Src/MQTTSerializePublish.c ****   */
+  31:Core/Src/MQTTSerializePublish.c **** int MQTTSerialize_publishLength(int qos, MQTTString topicName, int payloadlen)
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cccseB6j.s 			page 2
+
+
+  32:Core/Src/MQTTSerializePublish.c **** {
+  28              		.loc 1 32 1 view -0
+  29              		.cfi_startproc
+  30              		@ args = 4, pretend = 0, frame = 16
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32              		.loc 1 32 1 is_stmt 0 view .LVU1
+  33 0000 10B5     		push	{r4, lr}
+  34              	.LCFI0:
+  35              		.cfi_def_cfa_offset 8
+  36              		.cfi_offset 4, -8
+  37              		.cfi_offset 14, -4
+  38 0002 84B0     		sub	sp, sp, #16
+  39              	.LCFI1:
+  40              		.cfi_def_cfa_offset 24
+  41 0004 0446     		mov	r4, r0
+  42 0006 0DF1040C 		add	ip, sp, #4
+  43 000a 8CE80E00 		stm	ip, {r1, r2, r3}
+  33:Core/Src/MQTTSerializePublish.c **** 	int len = 0;
+  44              		.loc 1 33 2 is_stmt 1 view .LVU2
+  45              	.LVL1:
+  34:Core/Src/MQTTSerializePublish.c **** 
+  35:Core/Src/MQTTSerializePublish.c **** 	len += 2 + MQTTstrlen(topicName) + payloadlen;
+  46              		.loc 1 35 2 view .LVU3
+  47              		.loc 1 35 13 is_stmt 0 view .LVU4
+  48 000e 9CE80700 		ldm	ip, {r0, r1, r2}
+  49              	.LVL2:
+  50              		.loc 1 35 13 view .LVU5
+  51 0012 FFF7FEFF 		bl	MQTTstrlen
+  52              	.LVL3:
+  53              		.loc 1 35 11 view .LVU6
+  54 0016 831C     		adds	r3, r0, #2
+  55              		.loc 1 35 35 view .LVU7
+  56 0018 0698     		ldr	r0, [sp, #24]
+  57 001a 1844     		add	r0, r0, r3
+  58              	.LVL4:
+  36:Core/Src/MQTTSerializePublish.c **** 	if (qos > 0)
+  59              		.loc 1 36 2 is_stmt 1 view .LVU8
+  60              		.loc 1 36 5 is_stmt 0 view .LVU9
+  61 001c 002C     		cmp	r4, #0
+  62 001e 00DD     		ble	.L1
+  37:Core/Src/MQTTSerializePublish.c **** 		len += 2; /* packetid */
+  63              		.loc 1 37 3 is_stmt 1 view .LVU10
+  64              		.loc 1 37 7 is_stmt 0 view .LVU11
+  65 0020 0230     		adds	r0, r0, #2
+  66              	.LVL5:
+  38:Core/Src/MQTTSerializePublish.c **** 	return len;
+  67              		.loc 1 38 2 is_stmt 1 view .LVU12
+  68              	.L1:
+  39:Core/Src/MQTTSerializePublish.c **** }
+  69              		.loc 1 39 1 is_stmt 0 view .LVU13
+  70 0022 04B0     		add	sp, sp, #16
+  71              	.LCFI2:
+  72              		.cfi_def_cfa_offset 8
+  73              		@ sp needed
+  74 0024 10BD     		pop	{r4, pc}
+  75              		.loc 1 39 1 view .LVU14
+  76              		.cfi_endproc
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cccseB6j.s 			page 3
+
+
+  77              	.LFE3:
+  79              		.section	.text.MQTTSerialize_publish,"ax",%progbits
+  80              		.align	1
+  81              		.global	MQTTSerialize_publish
+  82              		.syntax unified
+  83              		.thumb
+  84              		.thumb_func
+  86              	MQTTSerialize_publish:
+  87              	.LVL6:
+  88              	.LFB4:
+  40:Core/Src/MQTTSerializePublish.c **** 
+  41:Core/Src/MQTTSerializePublish.c **** 
+  42:Core/Src/MQTTSerializePublish.c **** /**
+  43:Core/Src/MQTTSerializePublish.c ****   * Serializes the supplied publish data into the supplied buffer, ready for sending
+  44:Core/Src/MQTTSerializePublish.c ****   * @param buf the buffer into which the packet will be serialized
+  45:Core/Src/MQTTSerializePublish.c ****   * @param buflen the length in bytes of the supplied buffer
+  46:Core/Src/MQTTSerializePublish.c ****   * @param dup integer - the MQTT dup flag
+  47:Core/Src/MQTTSerializePublish.c ****   * @param qos integer - the MQTT QoS value
+  48:Core/Src/MQTTSerializePublish.c ****   * @param retained integer - the MQTT retained flag
+  49:Core/Src/MQTTSerializePublish.c ****   * @param packetid integer - the MQTT packet identifier
+  50:Core/Src/MQTTSerializePublish.c ****   * @param topicName MQTTString - the MQTT topic in the publish
+  51:Core/Src/MQTTSerializePublish.c ****   * @param payload byte buffer - the MQTT publish payload
+  52:Core/Src/MQTTSerializePublish.c ****   * @param payloadlen integer - the length of the MQTT payload
+  53:Core/Src/MQTTSerializePublish.c ****   * @return the length of the serialized data.  <= 0 indicates error
+  54:Core/Src/MQTTSerializePublish.c ****   */
+  55:Core/Src/MQTTSerializePublish.c **** int MQTTSerialize_publish(unsigned char* buf, int buflen, unsigned char dup, int qos, unsigned char
+  56:Core/Src/MQTTSerializePublish.c **** 		MQTTString topicName, unsigned char* payload, int payloadlen)
+  57:Core/Src/MQTTSerializePublish.c **** {
+  89              		.loc 1 57 1 is_stmt 1 view -0
+  90              		.cfi_startproc
+  91              		@ args = 28, pretend = 0, frame = 8
+  92              		@ frame_needed = 0, uses_anonymous_args = 0
+  93              		.loc 1 57 1 is_stmt 0 view .LVU16
+  94 0000 2DE9F047 		push	{r4, r5, r6, r7, r8, r9, r10, lr}
+  95              	.LCFI3:
+  96              		.cfi_def_cfa_offset 32
+  97              		.cfi_offset 4, -32
+  98              		.cfi_offset 5, -28
+  99              		.cfi_offset 6, -24
+ 100              		.cfi_offset 7, -20
+ 101              		.cfi_offset 8, -16
+ 102              		.cfi_offset 9, -12
+ 103              		.cfi_offset 10, -8
+ 104              		.cfi_offset 14, -4
+ 105 0004 84B0     		sub	sp, sp, #16
+ 106              	.LCFI4:
+ 107              		.cfi_def_cfa_offset 48
+ 108 0006 0646     		mov	r6, r0
+ 109 0008 0F46     		mov	r7, r1
+ 110 000a 9046     		mov	r8, r2
+ 111 000c 1C46     		mov	r4, r3
+ 112 000e DDF84890 		ldr	r9, [sp, #72]
+  58:Core/Src/MQTTSerializePublish.c **** 	unsigned char *ptr = buf;
+ 113              		.loc 1 58 2 is_stmt 1 view .LVU17
+ 114              		.loc 1 58 17 is_stmt 0 view .LVU18
+ 115 0012 0390     		str	r0, [sp, #12]
+  59:Core/Src/MQTTSerializePublish.c **** 	MQTTHeader header = {0};
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cccseB6j.s 			page 4
+
+
+ 116              		.loc 1 59 2 is_stmt 1 view .LVU19
+  60:Core/Src/MQTTSerializePublish.c **** 	int rem_len = 0;
+ 117              		.loc 1 60 2 view .LVU20
+ 118              	.LVL7:
+  61:Core/Src/MQTTSerializePublish.c **** 	int rc = 0;
+ 119              		.loc 1 61 2 view .LVU21
+  62:Core/Src/MQTTSerializePublish.c **** 
+  63:Core/Src/MQTTSerializePublish.c **** 	FUNC_ENTRY;
+ 120              		.loc 1 63 12 view .LVU22
+  64:Core/Src/MQTTSerializePublish.c **** 	if (MQTTPacket_len(rem_len = MQTTSerialize_publishLength(qos, topicName, payloadlen)) > buflen)
+ 121              		.loc 1 64 2 view .LVU23
+ 122              		.loc 1 64 31 is_stmt 0 view .LVU24
+ 123 0014 CDF80090 		str	r9, [sp]
+ 124 0018 0EAB     		add	r3, sp, #56
+ 125              	.LVL8:
+ 126              		.loc 1 64 31 view .LVU25
+ 127 001a 0ECB     		ldm	r3, {r1, r2, r3}
+ 128              	.LVL9:
+ 129              		.loc 1 64 31 view .LVU26
+ 130 001c 2046     		mov	r0, r4
+ 131              	.LVL10:
+ 132              		.loc 1 64 31 view .LVU27
+ 133 001e FFF7FEFF 		bl	MQTTSerialize_publishLength
+ 134              	.LVL11:
+ 135 0022 8246     		mov	r10, r0
+ 136              	.LVL12:
+ 137              		.loc 1 64 6 view .LVU28
+ 138 0024 FFF7FEFF 		bl	MQTTPacket_len
+ 139              	.LVL13:
+ 140              		.loc 1 64 5 view .LVU29
+ 141 0028 B842     		cmp	r0, r7
+ 142 002a 2FDC     		bgt	.L7
+ 143 002c 0025     		movs	r5, #0
+ 144              	.LVL14:
+  65:Core/Src/MQTTSerializePublish.c **** 	{
+  66:Core/Src/MQTTSerializePublish.c **** 		rc = MQTTPACKET_BUFFER_TOO_SHORT;
+  67:Core/Src/MQTTSerializePublish.c **** 		goto exit;
+  68:Core/Src/MQTTSerializePublish.c **** 	}
+  69:Core/Src/MQTTSerializePublish.c **** 
+  70:Core/Src/MQTTSerializePublish.c **** 	header.bits.type = PUBLISH;
+ 145              		.loc 1 70 2 is_stmt 1 view .LVU30
+ 146              		.loc 1 70 19 is_stmt 0 view .LVU31
+ 147 002e 0323     		movs	r3, #3
+ 148 0030 63F30715 		bfi	r5, r3, #4, #4
+ 149              	.LVL15:
+  71:Core/Src/MQTTSerializePublish.c **** 	header.bits.dup = dup;
+ 150              		.loc 1 71 2 is_stmt 1 view .LVU32
+ 151              		.loc 1 71 18 is_stmt 0 view .LVU33
+ 152 0034 68F3C305 		bfi	r5, r8, #3, #1
+  72:Core/Src/MQTTSerializePublish.c **** 	header.bits.qos = qos;
+ 153              		.loc 1 72 2 is_stmt 1 view .LVU34
+ 154              		.loc 1 72 18 is_stmt 0 view .LVU35
+ 155 0038 64F34205 		bfi	r5, r4, #1, #2
+  73:Core/Src/MQTTSerializePublish.c **** 	header.bits.retain = retained;
+ 156              		.loc 1 73 2 is_stmt 1 view .LVU36
+ 157              		.loc 1 73 21 is_stmt 0 view .LVU37
+ 158 003c 9DF83030 		ldrb	r3, [sp, #48]	@ zero_extendqisi2
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cccseB6j.s 			page 5
+
+
+ 159 0040 63F30005 		bfi	r5, r3, #0, #1
+  74:Core/Src/MQTTSerializePublish.c **** 	writeChar(&ptr, header.byte); /* write header */
+ 160              		.loc 1 74 2 is_stmt 1 view .LVU38
+ 161 0044 E9B2     		uxtb	r1, r5
+ 162 0046 03A8     		add	r0, sp, #12
+ 163 0048 FFF7FEFF 		bl	writeChar
+ 164              	.LVL16:
+  75:Core/Src/MQTTSerializePublish.c **** 
+  76:Core/Src/MQTTSerializePublish.c **** 	ptr += MQTTPacket_encode(ptr, rem_len); /* write remaining length */;
+ 165              		.loc 1 76 2 view .LVU39
+ 166              		.loc 1 76 9 is_stmt 0 view .LVU40
+ 167 004c 5146     		mov	r1, r10
+ 168 004e 0398     		ldr	r0, [sp, #12]
+ 169 0050 FFF7FEFF 		bl	MQTTPacket_encode
+ 170              	.LVL17:
+ 171              		.loc 1 76 6 view .LVU41
+ 172 0054 039B     		ldr	r3, [sp, #12]
+ 173 0056 0344     		add	r3, r3, r0
+ 174 0058 0393     		str	r3, [sp, #12]
+ 175              		.loc 1 76 70 is_stmt 1 view .LVU42
+  77:Core/Src/MQTTSerializePublish.c **** 
+  78:Core/Src/MQTTSerializePublish.c **** 	writeMQTTString(&ptr, topicName);
+ 176              		.loc 1 78 2 view .LVU43
+ 177 005a 0EAB     		add	r3, sp, #56
+ 178 005c 0ECB     		ldm	r3, {r1, r2, r3}
+ 179 005e 03A8     		add	r0, sp, #12
+ 180 0060 FFF7FEFF 		bl	writeMQTTString
+ 181              	.LVL18:
+  79:Core/Src/MQTTSerializePublish.c **** 
+  80:Core/Src/MQTTSerializePublish.c **** 	if (qos > 0)
+ 182              		.loc 1 80 2 view .LVU44
+ 183              		.loc 1 80 5 is_stmt 0 view .LVU45
+ 184 0064 002C     		cmp	r4, #0
+ 185 0066 0BDC     		bgt	.L9
+ 186              	.L6:
+  81:Core/Src/MQTTSerializePublish.c **** 		writeInt(&ptr, packetid);
+  82:Core/Src/MQTTSerializePublish.c **** 
+  83:Core/Src/MQTTSerializePublish.c **** 	memcpy(ptr, payload, payloadlen);
+ 187              		.loc 1 83 2 is_stmt 1 view .LVU46
+ 188 0068 4A46     		mov	r2, r9
+ 189 006a 1199     		ldr	r1, [sp, #68]
+ 190 006c 0398     		ldr	r0, [sp, #12]
+ 191 006e FFF7FEFF 		bl	memcpy
+ 192              	.LVL19:
+  84:Core/Src/MQTTSerializePublish.c **** 	ptr += payloadlen;
+ 193              		.loc 1 84 2 view .LVU47
+ 194              		.loc 1 84 6 is_stmt 0 view .LVU48
+ 195 0072 039A     		ldr	r2, [sp, #12]
+ 196 0074 4A44     		add	r2, r2, r9
+ 197 0076 0392     		str	r2, [sp, #12]
+  85:Core/Src/MQTTSerializePublish.c **** 
+  86:Core/Src/MQTTSerializePublish.c **** 	rc = ptr - buf;
+ 198              		.loc 1 86 2 is_stmt 1 view .LVU49
+ 199              		.loc 1 86 5 is_stmt 0 view .LVU50
+ 200 0078 901B     		subs	r0, r2, r6
+ 201              	.LVL20:
+ 202              	.L4:
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cccseB6j.s 			page 6
+
+
+  87:Core/Src/MQTTSerializePublish.c **** 
+  88:Core/Src/MQTTSerializePublish.c **** exit:
+  89:Core/Src/MQTTSerializePublish.c **** 	FUNC_EXIT_RC(rc);
+  90:Core/Src/MQTTSerializePublish.c **** 	return rc;
+  91:Core/Src/MQTTSerializePublish.c **** }
+ 203              		.loc 1 91 1 view .LVU51
+ 204 007a 04B0     		add	sp, sp, #16
+ 205              	.LCFI5:
+ 206              		.cfi_remember_state
+ 207              		.cfi_def_cfa_offset 32
+ 208              		@ sp needed
+ 209 007c BDE8F087 		pop	{r4, r5, r6, r7, r8, r9, r10, pc}
+ 210              	.LVL21:
+ 211              	.L9:
+ 212              	.LCFI6:
+ 213              		.cfi_restore_state
+  81:Core/Src/MQTTSerializePublish.c **** 
+ 214              		.loc 1 81 3 is_stmt 1 view .LVU52
+ 215 0080 BDF83410 		ldrh	r1, [sp, #52]
+ 216 0084 03A8     		add	r0, sp, #12
+ 217 0086 FFF7FEFF 		bl	writeInt
+ 218              	.LVL22:
+ 219 008a EDE7     		b	.L6
+ 220              	.LVL23:
+ 221              	.L7:
+  66:Core/Src/MQTTSerializePublish.c **** 		goto exit;
+ 222              		.loc 1 66 6 is_stmt 0 view .LVU53
+ 223 008c 6FF00100 		mvn	r0, #1
+ 224              	.L5:
+ 225              	.LVL24:
+  89:Core/Src/MQTTSerializePublish.c **** 	return rc;
+ 226              		.loc 1 89 18 is_stmt 1 view .LVU54
+  90:Core/Src/MQTTSerializePublish.c **** }
+ 227              		.loc 1 90 2 view .LVU55
+  90:Core/Src/MQTTSerializePublish.c **** }
+ 228              		.loc 1 90 9 is_stmt 0 view .LVU56
+ 229 0090 F3E7     		b	.L4
+ 230              		.cfi_endproc
+ 231              	.LFE4:
+ 233              		.section	.text.MQTTSerialize_ack,"ax",%progbits
+ 234              		.align	1
+ 235              		.global	MQTTSerialize_ack
+ 236              		.syntax unified
+ 237              		.thumb
+ 238              		.thumb_func
+ 240              	MQTTSerialize_ack:
+ 241              	.LVL25:
+ 242              	.LFB5:
+  92:Core/Src/MQTTSerializePublish.c **** 
+  93:Core/Src/MQTTSerializePublish.c **** 
+  94:Core/Src/MQTTSerializePublish.c **** 
+  95:Core/Src/MQTTSerializePublish.c **** /**
+  96:Core/Src/MQTTSerializePublish.c ****   * Serializes the ack packet into the supplied buffer.
+  97:Core/Src/MQTTSerializePublish.c ****   * @param buf the buffer into which the packet will be serialized
+  98:Core/Src/MQTTSerializePublish.c ****   * @param buflen the length in bytes of the supplied buffer
+  99:Core/Src/MQTTSerializePublish.c ****   * @param type the MQTT packet type
+ 100:Core/Src/MQTTSerializePublish.c ****   * @param dup the MQTT dup flag
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cccseB6j.s 			page 7
+
+
+ 101:Core/Src/MQTTSerializePublish.c ****   * @param packetid the MQTT packet identifier
+ 102:Core/Src/MQTTSerializePublish.c ****   * @return serialized length, or error if 0
+ 103:Core/Src/MQTTSerializePublish.c ****   */
+ 104:Core/Src/MQTTSerializePublish.c **** int MQTTSerialize_ack(unsigned char* buf, int buflen, unsigned char packettype, unsigned char dup, 
+ 105:Core/Src/MQTTSerializePublish.c **** {
+ 243              		.loc 1 105 1 is_stmt 1 view -0
+ 244              		.cfi_startproc
+ 245              		@ args = 4, pretend = 0, frame = 8
+ 246              		@ frame_needed = 0, uses_anonymous_args = 0
+ 247              		.loc 1 105 1 is_stmt 0 view .LVU58
+ 248 0000 10B5     		push	{r4, lr}
+ 249              	.LCFI7:
+ 250              		.cfi_def_cfa_offset 8
+ 251              		.cfi_offset 4, -8
+ 252              		.cfi_offset 14, -4
+ 253 0002 82B0     		sub	sp, sp, #8
+ 254              	.LCFI8:
+ 255              		.cfi_def_cfa_offset 16
+ 256 0004 0446     		mov	r4, r0
+ 106:Core/Src/MQTTSerializePublish.c **** 	MQTTHeader header = {0};
+ 257              		.loc 1 106 2 is_stmt 1 view .LVU59
+ 107:Core/Src/MQTTSerializePublish.c **** 	int rc = 0;
+ 258              		.loc 1 107 2 view .LVU60
+ 259              	.LVL26:
+ 108:Core/Src/MQTTSerializePublish.c **** 	unsigned char *ptr = buf;
+ 260              		.loc 1 108 2 view .LVU61
+ 261              		.loc 1 108 17 is_stmt 0 view .LVU62
+ 262 0006 0190     		str	r0, [sp, #4]
+ 109:Core/Src/MQTTSerializePublish.c **** 
+ 110:Core/Src/MQTTSerializePublish.c **** 	FUNC_ENTRY;
+ 263              		.loc 1 110 12 is_stmt 1 view .LVU63
+ 111:Core/Src/MQTTSerializePublish.c **** 	if (buflen < 4)
+ 264              		.loc 1 111 2 view .LVU64
+ 265              		.loc 1 111 5 is_stmt 0 view .LVU65
+ 266 0008 0329     		cmp	r1, #3
+ 267 000a 1EDD     		ble	.L12
+ 268 000c 0020     		movs	r0, #0
+ 269              	.LVL27:
+ 112:Core/Src/MQTTSerializePublish.c **** 	{
+ 113:Core/Src/MQTTSerializePublish.c **** 		rc = MQTTPACKET_BUFFER_TOO_SHORT;
+ 114:Core/Src/MQTTSerializePublish.c **** 		goto exit;
+ 115:Core/Src/MQTTSerializePublish.c **** 	}
+ 116:Core/Src/MQTTSerializePublish.c **** 	header.bits.type = packettype;
+ 270              		.loc 1 116 2 is_stmt 1 view .LVU66
+ 271              		.loc 1 116 19 is_stmt 0 view .LVU67
+ 272 000e 62F30710 		bfi	r0, r2, #4, #4
+ 273              	.LVL28:
+ 117:Core/Src/MQTTSerializePublish.c **** 	header.bits.dup = dup;
+ 274              		.loc 1 117 2 is_stmt 1 view .LVU68
+ 275              		.loc 1 117 18 is_stmt 0 view .LVU69
+ 276 0012 63F3C300 		bfi	r0, r3, #3, #1
+ 118:Core/Src/MQTTSerializePublish.c **** 	header.bits.qos = (packettype == PUBREL) ? 1 : 0;
+ 277              		.loc 1 118 2 is_stmt 1 view .LVU70
+ 278              		.loc 1 118 47 is_stmt 0 view .LVU71
+ 279 0016 062A     		cmp	r2, #6
+ 280 0018 14BF     		ite	ne
+ 281 001a 0022     		movne	r2, #0
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cccseB6j.s 			page 8
+
+
+ 282              	.LVL29:
+ 283              		.loc 1 118 47 view .LVU72
+ 284 001c 0122     		moveq	r2, #1
+ 285              		.loc 1 118 18 view .LVU73
+ 286 001e 62F34200 		bfi	r0, r2, #1, #2
+ 119:Core/Src/MQTTSerializePublish.c **** 	writeChar(&ptr, header.byte); /* write header */
+ 287              		.loc 1 119 2 is_stmt 1 view .LVU74
+ 288 0022 C1B2     		uxtb	r1, r0
+ 289              	.LVL30:
+ 290              		.loc 1 119 2 is_stmt 0 view .LVU75
+ 291 0024 01A8     		add	r0, sp, #4
+ 292              	.LVL31:
+ 293              		.loc 1 119 2 view .LVU76
+ 294 0026 FFF7FEFF 		bl	writeChar
+ 295              	.LVL32:
+ 120:Core/Src/MQTTSerializePublish.c **** 
+ 121:Core/Src/MQTTSerializePublish.c **** 	ptr += MQTTPacket_encode(ptr, 2); /* write remaining length */
+ 296              		.loc 1 121 2 is_stmt 1 view .LVU77
+ 297              		.loc 1 121 9 is_stmt 0 view .LVU78
+ 298 002a 0221     		movs	r1, #2
+ 299 002c 0198     		ldr	r0, [sp, #4]
+ 300 002e FFF7FEFF 		bl	MQTTPacket_encode
+ 301              	.LVL33:
+ 302              		.loc 1 121 6 view .LVU79
+ 303 0032 019B     		ldr	r3, [sp, #4]
+ 304 0034 0344     		add	r3, r3, r0
+ 305 0036 0193     		str	r3, [sp, #4]
+ 122:Core/Src/MQTTSerializePublish.c **** 	writeInt(&ptr, packetid);
+ 306              		.loc 1 122 2 is_stmt 1 view .LVU80
+ 307 0038 BDF81010 		ldrh	r1, [sp, #16]
+ 308 003c 01A8     		add	r0, sp, #4
+ 309 003e FFF7FEFF 		bl	writeInt
+ 310              	.LVL34:
+ 123:Core/Src/MQTTSerializePublish.c **** 	rc = ptr - buf;
+ 311              		.loc 1 123 2 view .LVU81
+ 312              		.loc 1 123 11 is_stmt 0 view .LVU82
+ 313 0042 0198     		ldr	r0, [sp, #4]
+ 314              		.loc 1 123 5 view .LVU83
+ 315 0044 001B     		subs	r0, r0, r4
+ 316              	.LVL35:
+ 317              	.L10:
+ 124:Core/Src/MQTTSerializePublish.c **** exit:
+ 125:Core/Src/MQTTSerializePublish.c **** 	FUNC_EXIT_RC(rc);
+ 126:Core/Src/MQTTSerializePublish.c **** 	return rc;
+ 127:Core/Src/MQTTSerializePublish.c **** }
+ 318              		.loc 1 127 1 view .LVU84
+ 319 0046 02B0     		add	sp, sp, #8
+ 320              	.LCFI9:
+ 321              		.cfi_remember_state
+ 322              		.cfi_def_cfa_offset 8
+ 323              		@ sp needed
+ 324 0048 10BD     		pop	{r4, pc}
+ 325              	.LVL36:
+ 326              	.L12:
+ 327              	.LCFI10:
+ 328              		.cfi_restore_state
+ 113:Core/Src/MQTTSerializePublish.c **** 		goto exit;
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cccseB6j.s 			page 9
+
+
+ 329              		.loc 1 113 6 view .LVU85
+ 330 004a 6FF00100 		mvn	r0, #1
+ 331              	.LVL37:
+ 332              	.L11:
+ 125:Core/Src/MQTTSerializePublish.c **** 	return rc;
+ 333              		.loc 1 125 18 is_stmt 1 view .LVU86
+ 126:Core/Src/MQTTSerializePublish.c **** }
+ 334              		.loc 1 126 2 view .LVU87
+ 126:Core/Src/MQTTSerializePublish.c **** }
+ 335              		.loc 1 126 9 is_stmt 0 view .LVU88
+ 336 004e FAE7     		b	.L10
+ 337              		.cfi_endproc
+ 338              	.LFE5:
+ 340              		.section	.text.MQTTSerialize_puback,"ax",%progbits
+ 341              		.align	1
+ 342              		.global	MQTTSerialize_puback
+ 343              		.syntax unified
+ 344              		.thumb
+ 345              		.thumb_func
+ 347              	MQTTSerialize_puback:
+ 348              	.LVL38:
+ 349              	.LFB6:
+ 128:Core/Src/MQTTSerializePublish.c **** 
+ 129:Core/Src/MQTTSerializePublish.c **** 
+ 130:Core/Src/MQTTSerializePublish.c **** /**
+ 131:Core/Src/MQTTSerializePublish.c ****   * Serializes a puback packet into the supplied buffer.
+ 132:Core/Src/MQTTSerializePublish.c ****   * @param buf the buffer into which the packet will be serialized
+ 133:Core/Src/MQTTSerializePublish.c ****   * @param buflen the length in bytes of the supplied buffer
+ 134:Core/Src/MQTTSerializePublish.c ****   * @param packetid integer - the MQTT packet identifier
+ 135:Core/Src/MQTTSerializePublish.c ****   * @return serialized length, or error if 0
+ 136:Core/Src/MQTTSerializePublish.c ****   */
+ 137:Core/Src/MQTTSerializePublish.c **** int MQTTSerialize_puback(unsigned char* buf, int buflen, unsigned short packetid)
+ 138:Core/Src/MQTTSerializePublish.c **** {
+ 350              		.loc 1 138 1 is_stmt 1 view -0
+ 351              		.cfi_startproc
+ 352              		@ args = 0, pretend = 0, frame = 0
+ 353              		@ frame_needed = 0, uses_anonymous_args = 0
+ 354              		.loc 1 138 1 is_stmt 0 view .LVU90
+ 355 0000 00B5     		push	{lr}
+ 356              	.LCFI11:
+ 357              		.cfi_def_cfa_offset 4
+ 358              		.cfi_offset 14, -4
+ 359 0002 83B0     		sub	sp, sp, #12
+ 360              	.LCFI12:
+ 361              		.cfi_def_cfa_offset 16
+ 139:Core/Src/MQTTSerializePublish.c **** 	return MQTTSerialize_ack(buf, buflen, PUBACK, 0, packetid);
+ 362              		.loc 1 139 2 is_stmt 1 view .LVU91
+ 363              		.loc 1 139 9 is_stmt 0 view .LVU92
+ 364 0004 0092     		str	r2, [sp]
+ 365 0006 0023     		movs	r3, #0
+ 366 0008 0422     		movs	r2, #4
+ 367              	.LVL39:
+ 368              		.loc 1 139 9 view .LVU93
+ 369 000a FFF7FEFF 		bl	MQTTSerialize_ack
+ 370              	.LVL40:
+ 140:Core/Src/MQTTSerializePublish.c **** }
+ 371              		.loc 1 140 1 view .LVU94
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cccseB6j.s 			page 10
+
+
+ 372 000e 03B0     		add	sp, sp, #12
+ 373              	.LCFI13:
+ 374              		.cfi_def_cfa_offset 4
+ 375              		@ sp needed
+ 376 0010 5DF804FB 		ldr	pc, [sp], #4
+ 377              		.cfi_endproc
+ 378              	.LFE6:
+ 380              		.section	.text.MQTTSerialize_pubrel,"ax",%progbits
+ 381              		.align	1
+ 382              		.global	MQTTSerialize_pubrel
+ 383              		.syntax unified
+ 384              		.thumb
+ 385              		.thumb_func
+ 387              	MQTTSerialize_pubrel:
+ 388              	.LVL41:
+ 389              	.LFB7:
+ 141:Core/Src/MQTTSerializePublish.c **** 
+ 142:Core/Src/MQTTSerializePublish.c **** 
+ 143:Core/Src/MQTTSerializePublish.c **** /**
+ 144:Core/Src/MQTTSerializePublish.c ****   * Serializes a pubrel packet into the supplied buffer.
+ 145:Core/Src/MQTTSerializePublish.c ****   * @param buf the buffer into which the packet will be serialized
+ 146:Core/Src/MQTTSerializePublish.c ****   * @param buflen the length in bytes of the supplied buffer
+ 147:Core/Src/MQTTSerializePublish.c ****   * @param dup integer - the MQTT dup flag
+ 148:Core/Src/MQTTSerializePublish.c ****   * @param packetid integer - the MQTT packet identifier
+ 149:Core/Src/MQTTSerializePublish.c ****   * @return serialized length, or error if 0
+ 150:Core/Src/MQTTSerializePublish.c ****   */
+ 151:Core/Src/MQTTSerializePublish.c **** int MQTTSerialize_pubrel(unsigned char* buf, int buflen, unsigned char dup, unsigned short packetid
+ 152:Core/Src/MQTTSerializePublish.c **** {
+ 390              		.loc 1 152 1 is_stmt 1 view -0
+ 391              		.cfi_startproc
+ 392              		@ args = 0, pretend = 0, frame = 0
+ 393              		@ frame_needed = 0, uses_anonymous_args = 0
+ 394              		.loc 1 152 1 is_stmt 0 view .LVU96
+ 395 0000 00B5     		push	{lr}
+ 396              	.LCFI14:
+ 397              		.cfi_def_cfa_offset 4
+ 398              		.cfi_offset 14, -4
+ 399 0002 83B0     		sub	sp, sp, #12
+ 400              	.LCFI15:
+ 401              		.cfi_def_cfa_offset 16
+ 153:Core/Src/MQTTSerializePublish.c **** 	return MQTTSerialize_ack(buf, buflen, PUBREL, dup, packetid);
+ 402              		.loc 1 153 2 is_stmt 1 view .LVU97
+ 403              		.loc 1 153 9 is_stmt 0 view .LVU98
+ 404 0004 0093     		str	r3, [sp]
+ 405 0006 1346     		mov	r3, r2
+ 406              	.LVL42:
+ 407              		.loc 1 153 9 view .LVU99
+ 408 0008 0622     		movs	r2, #6
+ 409              	.LVL43:
+ 410              		.loc 1 153 9 view .LVU100
+ 411 000a FFF7FEFF 		bl	MQTTSerialize_ack
+ 412              	.LVL44:
+ 154:Core/Src/MQTTSerializePublish.c **** }
+ 413              		.loc 1 154 1 view .LVU101
+ 414 000e 03B0     		add	sp, sp, #12
+ 415              	.LCFI16:
+ 416              		.cfi_def_cfa_offset 4
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cccseB6j.s 			page 11
+
+
+ 417              		@ sp needed
+ 418 0010 5DF804FB 		ldr	pc, [sp], #4
+ 419              		.cfi_endproc
+ 420              	.LFE7:
+ 422              		.section	.text.MQTTSerialize_pubcomp,"ax",%progbits
+ 423              		.align	1
+ 424              		.global	MQTTSerialize_pubcomp
+ 425              		.syntax unified
+ 426              		.thumb
+ 427              		.thumb_func
+ 429              	MQTTSerialize_pubcomp:
+ 430              	.LVL45:
+ 431              	.LFB8:
+ 155:Core/Src/MQTTSerializePublish.c **** 
+ 156:Core/Src/MQTTSerializePublish.c **** 
+ 157:Core/Src/MQTTSerializePublish.c **** /**
+ 158:Core/Src/MQTTSerializePublish.c ****   * Serializes a pubrel packet into the supplied buffer.
+ 159:Core/Src/MQTTSerializePublish.c ****   * @param buf the buffer into which the packet will be serialized
+ 160:Core/Src/MQTTSerializePublish.c ****   * @param buflen the length in bytes of the supplied buffer
+ 161:Core/Src/MQTTSerializePublish.c ****   * @param packetid integer - the MQTT packet identifier
+ 162:Core/Src/MQTTSerializePublish.c ****   * @return serialized length, or error if 0
+ 163:Core/Src/MQTTSerializePublish.c ****   */
+ 164:Core/Src/MQTTSerializePublish.c **** int MQTTSerialize_pubcomp(unsigned char* buf, int buflen, unsigned short packetid)
+ 165:Core/Src/MQTTSerializePublish.c **** {
+ 432              		.loc 1 165 1 is_stmt 1 view -0
+ 433              		.cfi_startproc
+ 434              		@ args = 0, pretend = 0, frame = 0
+ 435              		@ frame_needed = 0, uses_anonymous_args = 0
+ 436              		.loc 1 165 1 is_stmt 0 view .LVU103
+ 437 0000 00B5     		push	{lr}
+ 438              	.LCFI17:
+ 439              		.cfi_def_cfa_offset 4
+ 440              		.cfi_offset 14, -4
+ 441 0002 83B0     		sub	sp, sp, #12
+ 442              	.LCFI18:
+ 443              		.cfi_def_cfa_offset 16
+ 166:Core/Src/MQTTSerializePublish.c **** 	return MQTTSerialize_ack(buf, buflen, PUBCOMP, 0, packetid);
+ 444              		.loc 1 166 2 is_stmt 1 view .LVU104
+ 445              		.loc 1 166 9 is_stmt 0 view .LVU105
+ 446 0004 0092     		str	r2, [sp]
+ 447 0006 0023     		movs	r3, #0
+ 448 0008 0722     		movs	r2, #7
+ 449              	.LVL46:
+ 450              		.loc 1 166 9 view .LVU106
+ 451 000a FFF7FEFF 		bl	MQTTSerialize_ack
+ 452              	.LVL47:
+ 167:Core/Src/MQTTSerializePublish.c **** }
+ 453              		.loc 1 167 1 view .LVU107
+ 454 000e 03B0     		add	sp, sp, #12
+ 455              	.LCFI19:
+ 456              		.cfi_def_cfa_offset 4
+ 457              		@ sp needed
+ 458 0010 5DF804FB 		ldr	pc, [sp], #4
+ 459              		.cfi_endproc
+ 460              	.LFE8:
+ 462              		.text
+ 463              	.Letext0:
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cccseB6j.s 			page 12
+
+
+ 464              		.file 2 "Core/Inc/MQTTPacket.h"
+ 465              		.file 3 "<built-in>"
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cccseB6j.s 			page 13
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 MQTTSerializePublish.c
+C:\Users\dung\AppData\Local\Temp\cccseB6j.s:18     .text.MQTTSerialize_publishLength:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cccseB6j.s:24     .text.MQTTSerialize_publishLength:00000000 MQTTSerialize_publishLength
+C:\Users\dung\AppData\Local\Temp\cccseB6j.s:80     .text.MQTTSerialize_publish:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cccseB6j.s:86     .text.MQTTSerialize_publish:00000000 MQTTSerialize_publish
+C:\Users\dung\AppData\Local\Temp\cccseB6j.s:234    .text.MQTTSerialize_ack:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cccseB6j.s:240    .text.MQTTSerialize_ack:00000000 MQTTSerialize_ack
+C:\Users\dung\AppData\Local\Temp\cccseB6j.s:341    .text.MQTTSerialize_puback:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cccseB6j.s:347    .text.MQTTSerialize_puback:00000000 MQTTSerialize_puback
+C:\Users\dung\AppData\Local\Temp\cccseB6j.s:381    .text.MQTTSerialize_pubrel:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cccseB6j.s:387    .text.MQTTSerialize_pubrel:00000000 MQTTSerialize_pubrel
+C:\Users\dung\AppData\Local\Temp\cccseB6j.s:423    .text.MQTTSerialize_pubcomp:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cccseB6j.s:429    .text.MQTTSerialize_pubcomp:00000000 MQTTSerialize_pubcomp
+
+UNDEFINED SYMBOLS
+MQTTstrlen
+MQTTPacket_len
+writeChar
+MQTTPacket_encode
+writeMQTTString
+memcpy
+writeInt

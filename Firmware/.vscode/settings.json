@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "main.h": "c",
+        "mqttsim800.h": "c",
+        "l70.h": "c"
+    }
+}

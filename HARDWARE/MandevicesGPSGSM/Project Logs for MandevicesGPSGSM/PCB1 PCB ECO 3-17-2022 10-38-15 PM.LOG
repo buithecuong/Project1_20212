@@ -1,0 +1,7 @@
+Change Component Footprint: Designator=D1 Old Footprint=D1A New Footprint=D2A
+Change Net Name : Old Net Name=DN New Net Name=D_N
+Change Net Name : Old Net Name=DP New Net Name=D_P
+Added Differential Pair: Name=D
+Added Room: Name=Designator
+Added Room: Name=Designator
+Added Room: Name=Designator

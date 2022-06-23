@@ -1,0 +1,4 @@
+Removed Pin From Net: NetName=BUT_SOS Pin=U7-27
+Added Pin To Net: NetName=BUT_SOS Pin=U7-20
+Change Room Name: Old Name=Designator_3 New Name=Designator
+Added Room: Name=Designator

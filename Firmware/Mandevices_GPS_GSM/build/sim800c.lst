@@ -1,0 +1,1356 @@
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc328psh.s 			page 1
+
+
+   1              		.cpu cortex-m3
+   2              		.arch armv7-m
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"sim800c.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.sim800c_debug,"ax",%progbits
+  18              		.align	1
+  19              		.global	sim800c_debug
+  20              		.syntax unified
+  21              		.thumb
+  22              		.thumb_func
+  24              	sim800c_debug:
+  25              	.LVL0:
+  26              	.LFB68:
+  27              		.file 1 "Core/Src/sim800c.c"
+   1:Core/Src/sim800c.c **** #include "sim800c.h"
+   2:Core/Src/sim800c.c **** 
+   3:Core/Src/sim800c.c **** char simRxBuf[100] = {0};
+   4:Core/Src/sim800c.c **** int simRxIndex = 0;
+   5:Core/Src/sim800c.c **** char simRxData = '\0';
+   6:Core/Src/sim800c.c **** char simRxResponse[100] = {0};
+   7:Core/Src/sim800c.c **** simRxCpltStruct_t simRxCplt = SIM_NOT_RX_CPLT;
+   8:Core/Src/sim800c.c **** 
+   9:Core/Src/sim800c.c **** void sim800c_debug(uint8_t *pData, uint16_t Size, uint32_t Timeout)
+  10:Core/Src/sim800c.c **** {
+  28              		.loc 1 10 1 view -0
+  29              		.cfi_startproc
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32              		.loc 1 10 1 is_stmt 0 view .LVU1
+  33 0000 08B5     		push	{r3, lr}
+  34              	.LCFI0:
+  35              		.cfi_def_cfa_offset 8
+  36              		.cfi_offset 3, -8
+  37              		.cfi_offset 14, -4
+  38 0002 1346     		mov	r3, r2
+  11:Core/Src/sim800c.c ****     HAL_UART_Transmit(&huart1, pData, Size , Timeout);
+  39              		.loc 1 11 5 is_stmt 1 view .LVU2
+  40 0004 0A46     		mov	r2, r1
+  41              	.LVL1:
+  42              		.loc 1 11 5 is_stmt 0 view .LVU3
+  43 0006 0146     		mov	r1, r0
+  44              	.LVL2:
+  45              		.loc 1 11 5 view .LVU4
+  46 0008 0148     		ldr	r0, .L3
+  47              	.LVL3:
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc328psh.s 			page 2
+
+
+  48              		.loc 1 11 5 view .LVU5
+  49 000a FFF7FEFF 		bl	HAL_UART_Transmit
+  50              	.LVL4:
+  12:Core/Src/sim800c.c **** }
+  51              		.loc 1 12 1 view .LVU6
+  52 000e 08BD     		pop	{r3, pc}
+  53              	.L4:
+  54              		.align	2
+  55              	.L3:
+  56 0010 00000000 		.word	huart1
+  57              		.cfi_endproc
+  58              	.LFE68:
+  60              		.section	.text.sim800c_sendCommand,"ax",%progbits
+  61              		.align	1
+  62              		.global	sim800c_sendCommand
+  63              		.syntax unified
+  64              		.thumb
+  65              		.thumb_func
+  67              	sim800c_sendCommand:
+  68              	.LVL5:
+  69              	.LFB70:
+  13:Core/Src/sim800c.c **** 
+  14:Core/Src/sim800c.c **** void sim800c_init(void)
+  15:Core/Src/sim800c.c **** {
+  16:Core/Src/sim800c.c ****     while(!(sim800c_sendCommand("ATE0\r\n", "OK\r\n", SIM_NOT_CHECK) == SIM_OK))
+  17:Core/Src/sim800c.c ****     {
+  18:Core/Src/sim800c.c ****         HAL_Delay(500);
+  19:Core/Src/sim800c.c ****     }
+  20:Core/Src/sim800c.c ****     while(!(sim800c_sendCommand("AT\r\n", "OK\r\n", SIM_CHECK) == SIM_OK))
+  21:Core/Src/sim800c.c ****     {
+  22:Core/Src/sim800c.c ****         HAL_Delay(500);
+  23:Core/Src/sim800c.c ****     }
+  24:Core/Src/sim800c.c ****     sim800c_GSM_GPRS();    
+  25:Core/Src/sim800c.c **** }
+  26:Core/Src/sim800c.c **** 
+  27:Core/Src/sim800c.c **** simState_t sim800c_sendCommand(char *simCommand, char *trueResponse, int checkOrNot)
+  28:Core/Src/sim800c.c **** {   
+  70              		.loc 1 28 1 is_stmt 1 view -0
+  71              		.cfi_startproc
+  72              		@ args = 0, pretend = 0, frame = 0
+  73              		@ frame_needed = 0, uses_anonymous_args = 0
+  74              		.loc 1 28 1 is_stmt 0 view .LVU8
+  75 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+  76              	.LCFI1:
+  77              		.cfi_def_cfa_offset 24
+  78              		.cfi_offset 3, -24
+  79              		.cfi_offset 4, -20
+  80              		.cfi_offset 5, -16
+  81              		.cfi_offset 6, -12
+  82              		.cfi_offset 7, -8
+  83              		.cfi_offset 14, -4
+  84 0002 0446     		mov	r4, r0
+  85 0004 0E46     		mov	r6, r1
+  86 0006 1546     		mov	r5, r2
+  29:Core/Src/sim800c.c ****     HAL_UART_Receive_IT(&huart2, (uint8_t*)&simRxData, 1);
+  87              		.loc 1 29 5 is_stmt 1 view .LVU9
+  88 0008 234F     		ldr	r7, .L11
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc328psh.s 			page 3
+
+
+  89 000a 0122     		movs	r2, #1
+  90              	.LVL6:
+  91              		.loc 1 29 5 is_stmt 0 view .LVU10
+  92 000c 2349     		ldr	r1, .L11+4
+  93              	.LVL7:
+  94              		.loc 1 29 5 view .LVU11
+  95 000e 3846     		mov	r0, r7
+  96              	.LVL8:
+  97              		.loc 1 29 5 view .LVU12
+  98 0010 FFF7FEFF 		bl	HAL_UART_Receive_IT
+  99              	.LVL9:
+  30:Core/Src/sim800c.c ****     sim800c_debug((uint8_t*)simCommand, strlen(simCommand), 100);
+ 100              		.loc 1 30 5 is_stmt 1 view .LVU13
+ 101              		.loc 1 30 41 is_stmt 0 view .LVU14
+ 102 0014 2046     		mov	r0, r4
+ 103 0016 FFF7FEFF 		bl	strlen
+ 104              	.LVL10:
+ 105              		.loc 1 30 5 view .LVU15
+ 106 001a 6422     		movs	r2, #100
+ 107 001c 81B2     		uxth	r1, r0
+ 108 001e 2046     		mov	r0, r4
+ 109 0020 FFF7FEFF 		bl	sim800c_debug
+ 110              	.LVL11:
+  31:Core/Src/sim800c.c ****     HAL_UART_Transmit_IT(&huart2, (uint8_t*)simCommand, strlen(simCommand));
+ 111              		.loc 1 31 5 is_stmt 1 view .LVU16
+ 112              		.loc 1 31 57 is_stmt 0 view .LVU17
+ 113 0024 2046     		mov	r0, r4
+ 114 0026 FFF7FEFF 		bl	strlen
+ 115              	.LVL12:
+ 116              		.loc 1 31 5 view .LVU18
+ 117 002a 82B2     		uxth	r2, r0
+ 118 002c 2146     		mov	r1, r4
+ 119 002e 3846     		mov	r0, r7
+ 120 0030 FFF7FEFF 		bl	HAL_UART_Transmit_IT
+ 121              	.LVL13:
+  32:Core/Src/sim800c.c **** 
+  33:Core/Src/sim800c.c **** //    HAL_Delay(2000);
+  34:Core/Src/sim800c.c ****     HAL_TIM_Base_Start_IT(&htim2);
+ 122              		.loc 1 34 5 is_stmt 1 view .LVU19
+ 123 0034 1A48     		ldr	r0, .L11+8
+ 124 0036 FFF7FEFF 		bl	HAL_TIM_Base_Start_IT
+ 125              	.LVL14:
+  35:Core/Src/sim800c.c ****     while(!(simRxCplt == SIM_RX_CPLT));
+ 126              		.loc 1 35 5 view .LVU20
+ 127              	.L6:
+ 128              		.loc 1 35 39 discriminator 1 view .LVU21
+ 129              		.loc 1 35 10 discriminator 1 view .LVU22
+ 130              		.loc 1 35 11 is_stmt 0 discriminator 1 view .LVU23
+ 131 003a 1A4B     		ldr	r3, .L11+12
+ 132 003c 1C78     		ldrb	r4, [r3]	@ zero_extendqisi2
+ 133              		.loc 1 35 10 discriminator 1 view .LVU24
+ 134 003e 012C     		cmp	r4, #1
+ 135 0040 FBD1     		bne	.L6
+  36:Core/Src/sim800c.c ****     sim800c_debug((uint8_t*)simRxResponse, strlen(simRxResponse), 100);
+ 136              		.loc 1 36 5 is_stmt 1 view .LVU25
+ 137              		.loc 1 36 44 is_stmt 0 view .LVU26
+ 138 0042 194F     		ldr	r7, .L11+16
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc328psh.s 			page 4
+
+
+ 139 0044 3846     		mov	r0, r7
+ 140 0046 FFF7FEFF 		bl	strlen
+ 141              	.LVL15:
+ 142              		.loc 1 36 5 view .LVU27
+ 143 004a 6422     		movs	r2, #100
+ 144 004c 81B2     		uxth	r1, r0
+ 145 004e 3846     		mov	r0, r7
+ 146 0050 FFF7FEFF 		bl	sim800c_debug
+ 147              	.LVL16:
+  37:Core/Src/sim800c.c ****     if((checkOrNot == SIM_CHECK) && (strstr(simRxResponse, trueResponse) == NULL))
+ 148              		.loc 1 37 5 is_stmt 1 view .LVU28
+ 149              		.loc 1 37 7 is_stmt 0 view .LVU29
+ 150 0054 012D     		cmp	r5, #1
+ 151 0056 04D1     		bne	.L7
+ 152              		.loc 1 37 38 discriminator 1 view .LVU30
+ 153 0058 3146     		mov	r1, r6
+ 154 005a 3846     		mov	r0, r7
+ 155 005c FFF7FEFF 		bl	strstr
+ 156              	.LVL17:
+ 157              		.loc 1 37 34 discriminator 1 view .LVU31
+ 158 0060 68B1     		cbz	r0, .L10
+ 159              	.L7:
+  38:Core/Src/sim800c.c ****     {
+  39:Core/Src/sim800c.c ****         memset(simRxResponse, '\0', strlen(simRxResponse));
+  40:Core/Src/sim800c.c ****         simRxCplt = SIM_NOT_RX_CPLT;
+  41:Core/Src/sim800c.c ****         return SIM_NOT_OK;
+  42:Core/Src/sim800c.c ****     }
+  43:Core/Src/sim800c.c ****     memset(simRxResponse, '\0', strlen(simRxResponse));
+ 160              		.loc 1 43 5 is_stmt 1 view .LVU32
+ 161 0062 114D     		ldr	r5, .L11+16
+ 162              	.LVL18:
+ 163              		.loc 1 43 5 is_stmt 0 view .LVU33
+ 164 0064 2846     		mov	r0, r5
+ 165 0066 FFF7FEFF 		bl	strlen
+ 166              	.LVL19:
+ 167 006a 0246     		mov	r2, r0
+ 168 006c 0021     		movs	r1, #0
+ 169 006e 2846     		mov	r0, r5
+ 170 0070 FFF7FEFF 		bl	memset
+ 171              	.LVL20:
+  44:Core/Src/sim800c.c ****     simRxCplt = SIM_NOT_RX_CPLT;
+ 172              		.loc 1 44 5 is_stmt 1 view .LVU34
+ 173              		.loc 1 44 15 is_stmt 0 view .LVU35
+ 174 0074 0B4B     		ldr	r3, .L11+12
+ 175 0076 0022     		movs	r2, #0
+ 176 0078 1A70     		strb	r2, [r3]
+  45:Core/Src/sim800c.c ****     return SIM_OK;
+ 177              		.loc 1 45 5 is_stmt 1 view .LVU36
+ 178              	.L8:
+  46:Core/Src/sim800c.c **** }
+ 179              		.loc 1 46 1 is_stmt 0 view .LVU37
+ 180 007a 2046     		mov	r0, r4
+ 181 007c F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 182              	.LVL21:
+ 183              	.L10:
+  39:Core/Src/sim800c.c ****         simRxCplt = SIM_NOT_RX_CPLT;
+ 184              		.loc 1 39 9 is_stmt 1 view .LVU38
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc328psh.s 			page 5
+
+
+ 185 007e 3846     		mov	r0, r7
+ 186 0080 FFF7FEFF 		bl	strlen
+ 187              	.LVL22:
+ 188 0084 0246     		mov	r2, r0
+ 189 0086 0021     		movs	r1, #0
+ 190 0088 3846     		mov	r0, r7
+ 191 008a FFF7FEFF 		bl	memset
+ 192              	.LVL23:
+  40:Core/Src/sim800c.c ****         return SIM_NOT_OK;
+ 193              		.loc 1 40 9 view .LVU39
+  40:Core/Src/sim800c.c ****         return SIM_NOT_OK;
+ 194              		.loc 1 40 19 is_stmt 0 view .LVU40
+ 195 008e 0024     		movs	r4, #0
+ 196 0090 044B     		ldr	r3, .L11+12
+ 197 0092 1C70     		strb	r4, [r3]
+  41:Core/Src/sim800c.c ****     }
+ 198              		.loc 1 41 9 is_stmt 1 view .LVU41
+  41:Core/Src/sim800c.c ****     }
+ 199              		.loc 1 41 16 is_stmt 0 view .LVU42
+ 200 0094 F1E7     		b	.L8
+ 201              	.L12:
+ 202 0096 00BF     		.align	2
+ 203              	.L11:
+ 204 0098 00000000 		.word	huart2
+ 205 009c 00000000 		.word	.LANCHOR0
+ 206 00a0 00000000 		.word	htim2
+ 207 00a4 00000000 		.word	.LANCHOR1
+ 208 00a8 00000000 		.word	.LANCHOR2
+ 209              		.cfi_endproc
+ 210              	.LFE70:
+ 212              		.section	.rodata.sim800c_callback.str1.4,"aMS",%progbits,1
+ 213              		.align	2
+ 214              	.LC0:
+ 215 0000 0D0A00   		.ascii	"\015\012\000"
+ 216              		.section	.text.sim800c_callback,"ax",%progbits
+ 217              		.align	1
+ 218              		.global	sim800c_callback
+ 219              		.syntax unified
+ 220              		.thumb
+ 221              		.thumb_func
+ 223              	sim800c_callback:
+ 224              	.LFB71:
+  47:Core/Src/sim800c.c **** 
+  48:Core/Src/sim800c.c **** void sim800c_callback(void)
+  49:Core/Src/sim800c.c **** {
+ 225              		.loc 1 49 1 is_stmt 1 view -0
+ 226              		.cfi_startproc
+ 227              		@ args = 0, pretend = 0, frame = 0
+ 228              		@ frame_needed = 0, uses_anonymous_args = 0
+ 229 0000 10B5     		push	{r4, lr}
+ 230              	.LCFI2:
+ 231              		.cfi_def_cfa_offset 8
+ 232              		.cfi_offset 4, -8
+ 233              		.cfi_offset 14, -4
+  50:Core/Src/sim800c.c ****     TIM2->CNT = 0;
+ 234              		.loc 1 50 5 view .LVU44
+ 235              		.loc 1 50 15 is_stmt 0 view .LVU45
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc328psh.s 			page 6
+
+
+ 236 0002 4FF08043 		mov	r3, #1073741824
+ 237 0006 0022     		movs	r2, #0
+ 238 0008 5A62     		str	r2, [r3, #36]
+  51:Core/Src/sim800c.c ****     simRxBuf[simRxIndex++] = simRxData;
+ 239              		.loc 1 51 5 is_stmt 1 view .LVU46
+ 240              		.loc 1 51 24 is_stmt 0 view .LVU47
+ 241 000a 114A     		ldr	r2, .L17
+ 242 000c 1368     		ldr	r3, [r2]
+ 243 000e 591C     		adds	r1, r3, #1
+ 244 0010 1160     		str	r1, [r2]
+ 245              		.loc 1 51 28 view .LVU48
+ 246 0012 104C     		ldr	r4, .L17+4
+ 247 0014 1049     		ldr	r1, .L17+8
+ 248 0016 0A78     		ldrb	r2, [r1]	@ zero_extendqisi2
+ 249 0018 E254     		strb	r2, [r4, r3]
+  52:Core/Src/sim800c.c ****     HAL_UART_Receive_IT(&huart2, (uint8_t*)&simRxData, 1);
+ 250              		.loc 1 52 5 is_stmt 1 view .LVU49
+ 251 001a 0122     		movs	r2, #1
+ 252 001c 0F48     		ldr	r0, .L17+12
+ 253 001e FFF7FEFF 		bl	HAL_UART_Receive_IT
+ 254              	.LVL24:
+  53:Core/Src/sim800c.c ****     if((strstr(simRxBuf, "\r\n") != NULL) && (simRxIndex == 2))
+ 255              		.loc 1 53 5 view .LVU50
+ 256              		.loc 1 53 9 is_stmt 0 view .LVU51
+ 257 0022 0F49     		ldr	r1, .L17+16
+ 258 0024 2046     		mov	r0, r4
+ 259 0026 FFF7FEFF 		bl	strstr
+ 260              	.LVL25:
+ 261              		.loc 1 53 7 view .LVU52
+ 262 002a 18B1     		cbz	r0, .L13
+ 263              		.loc 1 53 58 discriminator 1 view .LVU53
+ 264 002c 084B     		ldr	r3, .L17
+ 265 002e 1B68     		ldr	r3, [r3]
+ 266              		.loc 1 53 43 discriminator 1 view .LVU54
+ 267 0030 022B     		cmp	r3, #2
+ 268 0032 00D0     		beq	.L16
+ 269              	.L13:
+  54:Core/Src/sim800c.c ****     {
+  55:Core/Src/sim800c.c ****         memset(simRxBuf, '\0', strlen(simRxBuf));
+  56:Core/Src/sim800c.c ****         simRxIndex = 0;
+  57:Core/Src/sim800c.c ****     }
+  58:Core/Src/sim800c.c **** }
+ 270              		.loc 1 58 1 view .LVU55
+ 271 0034 10BD     		pop	{r4, pc}
+ 272              	.L16:
+  55:Core/Src/sim800c.c ****         simRxIndex = 0;
+ 273              		.loc 1 55 9 is_stmt 1 view .LVU56
+ 274 0036 2046     		mov	r0, r4
+ 275 0038 FFF7FEFF 		bl	strlen
+ 276              	.LVL26:
+ 277 003c 0246     		mov	r2, r0
+ 278 003e 0021     		movs	r1, #0
+ 279 0040 2046     		mov	r0, r4
+ 280 0042 FFF7FEFF 		bl	memset
+ 281              	.LVL27:
+  56:Core/Src/sim800c.c ****     }
+ 282              		.loc 1 56 9 view .LVU57
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc328psh.s 			page 7
+
+
+  56:Core/Src/sim800c.c ****     }
+ 283              		.loc 1 56 20 is_stmt 0 view .LVU58
+ 284 0046 024B     		ldr	r3, .L17
+ 285 0048 0022     		movs	r2, #0
+ 286 004a 1A60     		str	r2, [r3]
+ 287              		.loc 1 58 1 view .LVU59
+ 288 004c F2E7     		b	.L13
+ 289              	.L18:
+ 290 004e 00BF     		.align	2
+ 291              	.L17:
+ 292 0050 00000000 		.word	.LANCHOR3
+ 293 0054 00000000 		.word	.LANCHOR4
+ 294 0058 00000000 		.word	.LANCHOR0
+ 295 005c 00000000 		.word	huart2
+ 296 0060 00000000 		.word	.LC0
+ 297              		.cfi_endproc
+ 298              	.LFE71:
+ 300              		.section	.text.sim800c_timerCallback,"ax",%progbits
+ 301              		.align	1
+ 302              		.global	sim800c_timerCallback
+ 303              		.syntax unified
+ 304              		.thumb
+ 305              		.thumb_func
+ 307              	sim800c_timerCallback:
+ 308              	.LFB72:
+  59:Core/Src/sim800c.c **** 
+  60:Core/Src/sim800c.c **** void sim800c_timerCallback(void)
+  61:Core/Src/sim800c.c **** {
+ 309              		.loc 1 61 1 is_stmt 1 view -0
+ 310              		.cfi_startproc
+ 311              		@ args = 0, pretend = 0, frame = 0
+ 312              		@ frame_needed = 0, uses_anonymous_args = 0
+ 313 0000 38B5     		push	{r3, r4, r5, lr}
+ 314              	.LCFI3:
+ 315              		.cfi_def_cfa_offset 16
+ 316              		.cfi_offset 3, -16
+ 317              		.cfi_offset 4, -12
+ 318              		.cfi_offset 5, -8
+ 319              		.cfi_offset 14, -4
+  62:Core/Src/sim800c.c ****     HAL_TIM_Base_Stop_IT(&htim2);
+ 320              		.loc 1 62 5 view .LVU61
+ 321 0002 1648     		ldr	r0, .L23
+ 322 0004 FFF7FEFF 		bl	HAL_TIM_Base_Stop_IT
+ 323              	.LVL28:
+  63:Core/Src/sim800c.c ****     TIM2->CNT = 0;
+ 324              		.loc 1 63 5 view .LVU62
+ 325              		.loc 1 63 15 is_stmt 0 view .LVU63
+ 326 0008 4FF08043 		mov	r3, #1073741824
+ 327 000c 0022     		movs	r2, #0
+ 328 000e 5A62     		str	r2, [r3, #36]
+  64:Core/Src/sim800c.c ****     if((strstr(simRxBuf, "\r\n") != NULL) | (strstr(simRxBuf, ">") != NULL))
+ 329              		.loc 1 64 5 is_stmt 1 view .LVU64
+ 330              		.loc 1 64 9 is_stmt 0 view .LVU65
+ 331 0010 134D     		ldr	r5, .L23+4
+ 332 0012 1449     		ldr	r1, .L23+8
+ 333 0014 2846     		mov	r0, r5
+ 334 0016 FFF7FEFF 		bl	strstr
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc328psh.s 			page 8
+
+
+ 335              	.LVL29:
+ 336 001a 0446     		mov	r4, r0
+ 337              		.loc 1 64 46 view .LVU66
+ 338 001c 3E21     		movs	r1, #62
+ 339 001e 2846     		mov	r0, r5
+ 340 0020 FFF7FEFF 		bl	strchr
+ 341              	.LVL30:
+ 342              		.loc 1 64 7 view .LVU67
+ 343 0024 0028     		cmp	r0, #0
+ 344 0026 08BF     		it	eq
+ 345 0028 002C     		cmpeq	r4, #0
+ 346 002a 03D1     		bne	.L22
+ 347              	.L20:
+  65:Core/Src/sim800c.c ****     {
+  66:Core/Src/sim800c.c ****         memcpy(simRxResponse, simRxBuf, strlen(simRxBuf));
+  67:Core/Src/sim800c.c ****         memset(simRxBuf, '\0', strlen(simRxBuf));
+  68:Core/Src/sim800c.c ****         simRxIndex = 0;
+  69:Core/Src/sim800c.c ****     }
+  70:Core/Src/sim800c.c ****     simRxCplt = SIM_RX_CPLT;
+ 348              		.loc 1 70 5 is_stmt 1 view .LVU68
+ 349              		.loc 1 70 15 is_stmt 0 view .LVU69
+ 350 002c 0E4B     		ldr	r3, .L23+12
+ 351 002e 0122     		movs	r2, #1
+ 352 0030 1A70     		strb	r2, [r3]
+  71:Core/Src/sim800c.c **** }
+ 353              		.loc 1 71 1 view .LVU70
+ 354 0032 38BD     		pop	{r3, r4, r5, pc}
+ 355              	.L22:
+  66:Core/Src/sim800c.c ****         memset(simRxBuf, '\0', strlen(simRxBuf));
+ 356              		.loc 1 66 9 is_stmt 1 view .LVU71
+ 357 0034 2846     		mov	r0, r5
+ 358 0036 FFF7FEFF 		bl	strlen
+ 359              	.LVL31:
+ 360 003a 0246     		mov	r2, r0
+ 361 003c 2946     		mov	r1, r5
+ 362 003e 0B48     		ldr	r0, .L23+16
+ 363 0040 FFF7FEFF 		bl	memcpy
+ 364              	.LVL32:
+  67:Core/Src/sim800c.c ****         simRxIndex = 0;
+ 365              		.loc 1 67 9 view .LVU72
+ 366 0044 2846     		mov	r0, r5
+ 367 0046 FFF7FEFF 		bl	strlen
+ 368              	.LVL33:
+ 369 004a 0246     		mov	r2, r0
+ 370 004c 0021     		movs	r1, #0
+ 371 004e 2846     		mov	r0, r5
+ 372 0050 FFF7FEFF 		bl	memset
+ 373              	.LVL34:
+  68:Core/Src/sim800c.c ****     }
+ 374              		.loc 1 68 9 view .LVU73
+  68:Core/Src/sim800c.c ****     }
+ 375              		.loc 1 68 20 is_stmt 0 view .LVU74
+ 376 0054 064B     		ldr	r3, .L23+20
+ 377 0056 0022     		movs	r2, #0
+ 378 0058 1A60     		str	r2, [r3]
+ 379 005a E7E7     		b	.L20
+ 380              	.L24:
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc328psh.s 			page 9
+
+
+ 381              		.align	2
+ 382              	.L23:
+ 383 005c 00000000 		.word	htim2
+ 384 0060 00000000 		.word	.LANCHOR4
+ 385 0064 00000000 		.word	.LC0
+ 386 0068 00000000 		.word	.LANCHOR1
+ 387 006c 00000000 		.word	.LANCHOR2
+ 388 0070 00000000 		.word	.LANCHOR3
+ 389              		.cfi_endproc
+ 390              	.LFE72:
+ 392              		.section	.rodata.sim800c_errorHandle.str1.4,"aMS",%progbits,1
+ 393              		.align	2
+ 394              	.LC1:
+ 395 0000 53696D20 		.ascii	"Sim error\015\012\000"
+ 395      6572726F 
+ 395      720D0A00 
+ 396              		.section	.text.sim800c_errorHandle,"ax",%progbits
+ 397              		.align	1
+ 398              		.global	sim800c_errorHandle
+ 399              		.syntax unified
+ 400              		.thumb
+ 401              		.thumb_func
+ 403              	sim800c_errorHandle:
+ 404              	.LFB74:
+  72:Core/Src/sim800c.c **** 
+  73:Core/Src/sim800c.c **** void sim800c_sendSMS(char *latData, char *longData, char *simNumber, char *simMessage)
+  74:Core/Src/sim800c.c **** {
+  75:Core/Src/sim800c.c ****     char smsATCommand[50] = {0};
+  76:Core/Src/sim800c.c ****     char endSMS[2] = {0};
+  77:Core/Src/sim800c.c ****     endSMS[0] = 0x1A;
+  78:Core/Src/sim800c.c ****     endSMS[1] = '\0';
+  79:Core/Src/sim800c.c ****     sprintf(smsATCommand, "AT+CMGS=\"%s\"\r\n", simNumber);
+  80:Core/Src/sim800c.c ****     if(sim800c_sendCommand("AT+CMGF=1\r\n", "OK\r\n", SIM_CHECK) != SIM_OK)
+  81:Core/Src/sim800c.c ****     {
+  82:Core/Src/sim800c.c ****         sim800c_errorHandle();
+  83:Core/Src/sim800c.c ****     }
+  84:Core/Src/sim800c.c ****     if(sim800c_sendCommand(smsATCommand, ">", SIM_CHECK) != SIM_OK)
+  85:Core/Src/sim800c.c ****     {
+  86:Core/Src/sim800c.c ****         sim800c_errorHandle();
+  87:Core/Src/sim800c.c ****     }
+  88:Core/Src/sim800c.c ****     if(sim800c_sendCommand(simMessage, NULL, SIM_NOT_CHECK) != SIM_OK)
+  89:Core/Src/sim800c.c ****     {
+  90:Core/Src/sim800c.c ****         sim800c_errorHandle();
+  91:Core/Src/sim800c.c ****     }
+  92:Core/Src/sim800c.c ****     if(sim800c_sendCommand(endSMS, NULL, SIM_NOT_CHECK) != SIM_OK)
+  93:Core/Src/sim800c.c ****     {
+  94:Core/Src/sim800c.c ****         sim800c_errorHandle();
+  95:Core/Src/sim800c.c ****     }
+  96:Core/Src/sim800c.c **** }
+  97:Core/Src/sim800c.c **** 
+  98:Core/Src/sim800c.c **** void sim800c_errorHandle(void)
+  99:Core/Src/sim800c.c **** {
+ 405              		.loc 1 99 1 is_stmt 1 view -0
+ 406              		.cfi_startproc
+ 407              		@ Volatile: function does not return.
+ 408              		@ args = 0, pretend = 0, frame = 0
+ 409              		@ frame_needed = 0, uses_anonymous_args = 0
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc328psh.s 			page 10
+
+
+ 410 0000 08B5     		push	{r3, lr}
+ 411              	.LCFI4:
+ 412              		.cfi_def_cfa_offset 8
+ 413              		.cfi_offset 3, -8
+ 414              		.cfi_offset 14, -4
+ 100:Core/Src/sim800c.c ****     sim800c_debug((uint8_t*)"Sim error\r\n", strlen("Sim error\r\n"), 100);
+ 415              		.loc 1 100 5 view .LVU76
+ 416 0002 6422     		movs	r2, #100
+ 417 0004 0B21     		movs	r1, #11
+ 418 0006 0248     		ldr	r0, .L28
+ 419 0008 FFF7FEFF 		bl	sim800c_debug
+ 420              	.LVL35:
+ 101:Core/Src/sim800c.c ****     __disable_irq();
+ 421              		.loc 1 101 5 view .LVU77
+ 422              	.LBB4:
+ 423              	.LBI4:
+ 424              		.file 2 "Drivers/CMSIS/Include/cmsis_gcc.h"
+   1:Drivers/CMSIS/Include/cmsis_gcc.h **** /**************************************************************************//**
+   2:Drivers/CMSIS/Include/cmsis_gcc.h ****  * @file     cmsis_gcc.h
+   3:Drivers/CMSIS/Include/cmsis_gcc.h ****  * @brief    CMSIS compiler GCC header file
+   4:Drivers/CMSIS/Include/cmsis_gcc.h ****  * @version  V5.0.4
+   5:Drivers/CMSIS/Include/cmsis_gcc.h ****  * @date     09. April 2018
+   6:Drivers/CMSIS/Include/cmsis_gcc.h ****  ******************************************************************************/
+   7:Drivers/CMSIS/Include/cmsis_gcc.h **** /*
+   8:Drivers/CMSIS/Include/cmsis_gcc.h ****  * Copyright (c) 2009-2018 Arm Limited. All rights reserved.
+   9:Drivers/CMSIS/Include/cmsis_gcc.h ****  *
+  10:Drivers/CMSIS/Include/cmsis_gcc.h ****  * SPDX-License-Identifier: Apache-2.0
+  11:Drivers/CMSIS/Include/cmsis_gcc.h ****  *
+  12:Drivers/CMSIS/Include/cmsis_gcc.h ****  * Licensed under the Apache License, Version 2.0 (the License); you may
+  13:Drivers/CMSIS/Include/cmsis_gcc.h ****  * not use this file except in compliance with the License.
+  14:Drivers/CMSIS/Include/cmsis_gcc.h ****  * You may obtain a copy of the License at
+  15:Drivers/CMSIS/Include/cmsis_gcc.h ****  *
+  16:Drivers/CMSIS/Include/cmsis_gcc.h ****  * www.apache.org/licenses/LICENSE-2.0
+  17:Drivers/CMSIS/Include/cmsis_gcc.h ****  *
+  18:Drivers/CMSIS/Include/cmsis_gcc.h ****  * Unless required by applicable law or agreed to in writing, software
+  19:Drivers/CMSIS/Include/cmsis_gcc.h ****  * distributed under the License is distributed on an AS IS BASIS, WITHOUT
+  20:Drivers/CMSIS/Include/cmsis_gcc.h ****  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  21:Drivers/CMSIS/Include/cmsis_gcc.h ****  * See the License for the specific language governing permissions and
+  22:Drivers/CMSIS/Include/cmsis_gcc.h ****  * limitations under the License.
+  23:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
+  24:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+  25:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef __CMSIS_GCC_H
+  26:Drivers/CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_H
+  27:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+  28:Drivers/CMSIS/Include/cmsis_gcc.h **** /* ignore some GCC warnings */
+  29:Drivers/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic push
+  30:Drivers/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic ignored "-Wsign-conversion"
+  31:Drivers/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic ignored "-Wconversion"
+  32:Drivers/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic ignored "-Wunused-parameter"
+  33:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+  34:Drivers/CMSIS/Include/cmsis_gcc.h **** /* Fallback for __has_builtin */
+  35:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef __has_builtin
+  36:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __has_builtin(x) (0)
+  37:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  38:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+  39:Drivers/CMSIS/Include/cmsis_gcc.h **** /* CMSIS compiler specific defines */
+  40:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __ASM
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc328psh.s 			page 11
+
+
+  41:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __ASM                                  __asm
+  42:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  43:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __INLINE
+  44:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __INLINE                               inline
+  45:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  46:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __STATIC_INLINE
+  47:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __STATIC_INLINE                        static inline
+  48:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  49:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __STATIC_FORCEINLINE                 
+  50:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __STATIC_FORCEINLINE                   __attribute__((always_inline)) static inline
+  51:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif                                           
+  52:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __NO_RETURN
+  53:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __NO_RETURN                            __attribute__((__noreturn__))
+  54:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  55:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __USED
+  56:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __USED                                 __attribute__((used))
+  57:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  58:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __WEAK
+  59:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __WEAK                                 __attribute__((weak))
+  60:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  61:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __PACKED
+  62:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __PACKED                               __attribute__((packed, aligned(1)))
+  63:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  64:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __PACKED_STRUCT
+  65:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __PACKED_STRUCT                        struct __attribute__((packed, aligned(1)))
+  66:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  67:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __PACKED_UNION
+  68:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __PACKED_UNION                         union __attribute__((packed, aligned(1)))
+  69:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  70:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT32        /* deprecated */
+  71:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  72:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  73:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  74:Drivers/CMSIS/Include/cmsis_gcc.h ****   struct __attribute__((packed)) T_UINT32 { uint32_t v; };
+  75:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+  76:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT32(x)                  (((struct T_UINT32 *)(x))->v)
+  77:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  78:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT16_WRITE
+  79:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  80:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  81:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  82:Drivers/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT16_WRITE { uint16_t v; };
+  83:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+  84:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT16_WRITE(addr, val)    (void)((((struct T_UINT16_WRITE *)(void *)(addr))-
+  85:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  86:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT16_READ
+  87:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  88:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  89:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  90:Drivers/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT16_READ { uint16_t v; };
+  91:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+  92:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT16_READ(addr)          (((const struct T_UINT16_READ *)(const void *)(add
+  93:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  94:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT32_WRITE
+  95:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  96:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  97:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc328psh.s 			page 12
+
+
+  98:Drivers/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT32_WRITE { uint32_t v; };
+  99:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+ 100:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT32_WRITE(addr, val)    (void)((((struct T_UINT32_WRITE *)(void *)(addr))-
+ 101:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+ 102:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT32_READ
+ 103:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+ 104:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+ 105:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+ 106:Drivers/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT32_READ { uint32_t v; };
+ 107:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+ 108:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT32_READ(addr)          (((const struct T_UINT32_READ *)(const void *)(add
+ 109:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+ 110:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __ALIGNED
+ 111:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __ALIGNED(x)                           __attribute__((aligned(x)))
+ 112:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+ 113:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __RESTRICT
+ 114:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __RESTRICT                             __restrict
+ 115:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+ 116:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+ 117:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+ 118:Drivers/CMSIS/Include/cmsis_gcc.h **** /* ###########################  Core Function Access  ########################### */
+ 119:Drivers/CMSIS/Include/cmsis_gcc.h **** /** \ingroup  CMSIS_Core_FunctionInterface
+ 120:Drivers/CMSIS/Include/cmsis_gcc.h ****     \defgroup CMSIS_Core_RegAccFunctions CMSIS Core Register Access Functions
+ 121:Drivers/CMSIS/Include/cmsis_gcc.h ****   @{
+ 122:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
+ 123:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+ 124:Drivers/CMSIS/Include/cmsis_gcc.h **** /**
+ 125:Drivers/CMSIS/Include/cmsis_gcc.h ****   \brief   Enable IRQ Interrupts
+ 126:Drivers/CMSIS/Include/cmsis_gcc.h ****   \details Enables IRQ interrupts by clearing the I-bit in the CPSR.
+ 127:Drivers/CMSIS/Include/cmsis_gcc.h ****            Can only be executed in Privileged modes.
+ 128:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
+ 129:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __enable_irq(void)
+ 130:Drivers/CMSIS/Include/cmsis_gcc.h **** {
+ 131:Drivers/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("cpsie i" : : : "memory");
+ 132:Drivers/CMSIS/Include/cmsis_gcc.h **** }
+ 133:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+ 134:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+ 135:Drivers/CMSIS/Include/cmsis_gcc.h **** /**
+ 136:Drivers/CMSIS/Include/cmsis_gcc.h ****   \brief   Disable IRQ Interrupts
+ 137:Drivers/CMSIS/Include/cmsis_gcc.h ****   \details Disables IRQ interrupts by setting the I-bit in the CPSR.
+ 138:Drivers/CMSIS/Include/cmsis_gcc.h ****            Can only be executed in Privileged modes.
+ 139:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
+ 140:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __disable_irq(void)
+ 425              		.loc 2 140 27 view .LVU78
+ 426              	.LBB5:
+ 141:Drivers/CMSIS/Include/cmsis_gcc.h **** {
+ 142:Drivers/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("cpsid i" : : : "memory");
+ 427              		.loc 2 142 3 view .LVU79
+ 428              		.syntax unified
+ 429              	@ 142 "Drivers/CMSIS/Include/cmsis_gcc.h" 1
+ 430 000c 72B6     		cpsid i
+ 431              	@ 0 "" 2
+ 432              		.thumb
+ 433              		.syntax unified
+ 434              	.L26:
+ 435              	.LBE5:
+ 436              	.LBE4:
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc328psh.s 			page 13
+
+
+ 102:Core/Src/sim800c.c ****     while(1)
+ 437              		.loc 1 102 5 discriminator 1 view .LVU80
+ 103:Core/Src/sim800c.c ****     {
+ 104:Core/Src/sim800c.c **** 
+ 105:Core/Src/sim800c.c ****     }
+ 438              		.loc 1 105 5 discriminator 1 view .LVU81
+ 102:Core/Src/sim800c.c ****     while(1)
+ 439              		.loc 1 102 10 discriminator 1 view .LVU82
+ 440 000e FEE7     		b	.L26
+ 441              	.L29:
+ 442              		.align	2
+ 443              	.L28:
+ 444 0010 00000000 		.word	.LC1
+ 445              		.cfi_endproc
+ 446              	.LFE74:
+ 448              		.section	.rodata.sim800c_sendSMS.str1.4,"aMS",%progbits,1
+ 449              		.align	2
+ 450              	.LC2:
+ 451 0000 41542B43 		.ascii	"AT+CMGS=\"%s\"\015\012\000"
+ 451      4D47533D 
+ 451      22257322 
+ 451      0D0A00
+ 452 000f 00       		.align	2
+ 453              	.LC3:
+ 454 0010 4F4B0D0A 		.ascii	"OK\015\012\000"
+ 454      00
+ 455 0015 000000   		.align	2
+ 456              	.LC4:
+ 457 0018 41542B43 		.ascii	"AT+CMGF=1\015\012\000"
+ 457      4D47463D 
+ 457      310D0A00 
+ 458              		.align	2
+ 459              	.LC5:
+ 460 0024 3E00     		.ascii	">\000"
+ 461              		.section	.text.sim800c_sendSMS,"ax",%progbits
+ 462              		.align	1
+ 463              		.global	sim800c_sendSMS
+ 464              		.syntax unified
+ 465              		.thumb
+ 466              		.thumb_func
+ 468              	sim800c_sendSMS:
+ 469              	.LVL36:
+ 470              	.LFB73:
+  74:Core/Src/sim800c.c ****     char smsATCommand[50] = {0};
+ 471              		.loc 1 74 1 view -0
+ 472              		.cfi_startproc
+ 473              		@ args = 0, pretend = 0, frame = 56
+ 474              		@ frame_needed = 0, uses_anonymous_args = 0
+  74:Core/Src/sim800c.c ****     char smsATCommand[50] = {0};
+ 475              		.loc 1 74 1 is_stmt 0 view .LVU84
+ 476 0000 70B5     		push	{r4, r5, r6, lr}
+ 477              	.LCFI5:
+ 478              		.cfi_def_cfa_offset 16
+ 479              		.cfi_offset 4, -16
+ 480              		.cfi_offset 5, -12
+ 481              		.cfi_offset 6, -8
+ 482              		.cfi_offset 14, -4
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc328psh.s 			page 14
+
+
+ 483 0002 8EB0     		sub	sp, sp, #56
+ 484              	.LCFI6:
+ 485              		.cfi_def_cfa_offset 72
+ 486 0004 1446     		mov	r4, r2
+ 487 0006 1E46     		mov	r6, r3
+  75:Core/Src/sim800c.c ****     char endSMS[2] = {0};
+ 488              		.loc 1 75 5 is_stmt 1 view .LVU85
+  75:Core/Src/sim800c.c ****     char endSMS[2] = {0};
+ 489              		.loc 1 75 10 is_stmt 0 view .LVU86
+ 490 0008 0025     		movs	r5, #0
+ 491 000a 0195     		str	r5, [sp, #4]
+ 492 000c 2E22     		movs	r2, #46
+ 493              	.LVL37:
+  75:Core/Src/sim800c.c ****     char endSMS[2] = {0};
+ 494              		.loc 1 75 10 view .LVU87
+ 495 000e 2946     		mov	r1, r5
+ 496              	.LVL38:
+  75:Core/Src/sim800c.c ****     char endSMS[2] = {0};
+ 497              		.loc 1 75 10 view .LVU88
+ 498 0010 02A8     		add	r0, sp, #8
+ 499              	.LVL39:
+  75:Core/Src/sim800c.c ****     char endSMS[2] = {0};
+ 500              		.loc 1 75 10 view .LVU89
+ 501 0012 FFF7FEFF 		bl	memset
+ 502              	.LVL40:
+  76:Core/Src/sim800c.c ****     endSMS[0] = 0x1A;
+ 503              		.loc 1 76 5 is_stmt 1 view .LVU90
+  76:Core/Src/sim800c.c ****     endSMS[0] = 0x1A;
+ 504              		.loc 1 76 10 is_stmt 0 view .LVU91
+ 505 0016 ADF80050 		strh	r5, [sp]	@ movhi
+  77:Core/Src/sim800c.c ****     endSMS[1] = '\0';
+ 506              		.loc 1 77 5 is_stmt 1 view .LVU92
+  77:Core/Src/sim800c.c ****     endSMS[1] = '\0';
+ 507              		.loc 1 77 15 is_stmt 0 view .LVU93
+ 508 001a 1A23     		movs	r3, #26
+ 509 001c 8DF80030 		strb	r3, [sp]
+  78:Core/Src/sim800c.c ****     sprintf(smsATCommand, "AT+CMGS=\"%s\"\r\n", simNumber);
+ 510              		.loc 1 78 5 is_stmt 1 view .LVU94
+  79:Core/Src/sim800c.c ****     if(sim800c_sendCommand("AT+CMGF=1\r\n", "OK\r\n", SIM_CHECK) != SIM_OK)
+ 511              		.loc 1 79 5 view .LVU95
+ 512 0020 2246     		mov	r2, r4
+ 513 0022 1549     		ldr	r1, .L40
+ 514 0024 01A8     		add	r0, sp, #4
+ 515 0026 FFF7FEFF 		bl	sprintf
+ 516              	.LVL41:
+  80:Core/Src/sim800c.c ****     {
+ 517              		.loc 1 80 5 view .LVU96
+  80:Core/Src/sim800c.c ****     {
+ 518              		.loc 1 80 8 is_stmt 0 view .LVU97
+ 519 002a 0122     		movs	r2, #1
+ 520 002c 1349     		ldr	r1, .L40+4
+ 521 002e 1448     		ldr	r0, .L40+8
+ 522 0030 FFF7FEFF 		bl	sim800c_sendCommand
+ 523              	.LVL42:
+  80:Core/Src/sim800c.c ****     {
+ 524              		.loc 1 80 7 view .LVU98
+ 525 0034 0128     		cmp	r0, #1
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc328psh.s 			page 15
+
+
+ 526 0036 16D1     		bne	.L36
+  84:Core/Src/sim800c.c ****     {
+ 527              		.loc 1 84 5 is_stmt 1 view .LVU99
+  84:Core/Src/sim800c.c ****     {
+ 528              		.loc 1 84 8 is_stmt 0 view .LVU100
+ 529 0038 0122     		movs	r2, #1
+ 530 003a 1249     		ldr	r1, .L40+12
+ 531 003c 01A8     		add	r0, sp, #4
+ 532 003e FFF7FEFF 		bl	sim800c_sendCommand
+ 533              	.LVL43:
+  84:Core/Src/sim800c.c ****     {
+ 534              		.loc 1 84 7 view .LVU101
+ 535 0042 0128     		cmp	r0, #1
+ 536 0044 11D1     		bne	.L37
+  88:Core/Src/sim800c.c ****     {
+ 537              		.loc 1 88 5 is_stmt 1 view .LVU102
+  88:Core/Src/sim800c.c ****     {
+ 538              		.loc 1 88 8 is_stmt 0 view .LVU103
+ 539 0046 0022     		movs	r2, #0
+ 540 0048 1146     		mov	r1, r2
+ 541 004a 3046     		mov	r0, r6
+ 542 004c FFF7FEFF 		bl	sim800c_sendCommand
+ 543              	.LVL44:
+  88:Core/Src/sim800c.c ****     {
+ 544              		.loc 1 88 7 view .LVU104
+ 545 0050 0128     		cmp	r0, #1
+ 546 0052 0CD1     		bne	.L38
+  92:Core/Src/sim800c.c ****     {
+ 547              		.loc 1 92 5 is_stmt 1 view .LVU105
+  92:Core/Src/sim800c.c ****     {
+ 548              		.loc 1 92 8 is_stmt 0 view .LVU106
+ 549 0054 0022     		movs	r2, #0
+ 550 0056 1146     		mov	r1, r2
+ 551 0058 6846     		mov	r0, sp
+ 552 005a FFF7FEFF 		bl	sim800c_sendCommand
+ 553              	.LVL45:
+  92:Core/Src/sim800c.c ****     {
+ 554              		.loc 1 92 7 view .LVU107
+ 555 005e 0128     		cmp	r0, #1
+ 556 0060 07D1     		bne	.L39
+  96:Core/Src/sim800c.c **** 
+ 557              		.loc 1 96 1 view .LVU108
+ 558 0062 0EB0     		add	sp, sp, #56
+ 559              	.LCFI7:
+ 560              		.cfi_remember_state
+ 561              		.cfi_def_cfa_offset 16
+ 562              		@ sp needed
+ 563 0064 70BD     		pop	{r4, r5, r6, pc}
+ 564              	.LVL46:
+ 565              	.L36:
+ 566              	.LCFI8:
+ 567              		.cfi_restore_state
+  82:Core/Src/sim800c.c ****     }
+ 568              		.loc 1 82 9 is_stmt 1 view .LVU109
+ 569 0066 FFF7FEFF 		bl	sim800c_errorHandle
+ 570              	.LVL47:
+ 571              	.L37:
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc328psh.s 			page 16
+
+
+  86:Core/Src/sim800c.c ****     }
+ 572              		.loc 1 86 9 view .LVU110
+ 573 006a FFF7FEFF 		bl	sim800c_errorHandle
+ 574              	.LVL48:
+ 575              	.L38:
+  90:Core/Src/sim800c.c ****     }
+ 576              		.loc 1 90 9 view .LVU111
+ 577 006e FFF7FEFF 		bl	sim800c_errorHandle
+ 578              	.LVL49:
+ 579              	.L39:
+  94:Core/Src/sim800c.c ****     }
+ 580              		.loc 1 94 9 view .LVU112
+ 581 0072 FFF7FEFF 		bl	sim800c_errorHandle
+ 582              	.LVL50:
+ 583              	.L41:
+ 584 0076 00BF     		.align	2
+ 585              	.L40:
+ 586 0078 00000000 		.word	.LC2
+ 587 007c 10000000 		.word	.LC3
+ 588 0080 18000000 		.word	.LC4
+ 589 0084 24000000 		.word	.LC5
+ 590              		.cfi_endproc
+ 591              	.LFE73:
+ 593              		.section	.rodata.sim800c_connectServer.str1.4,"aMS",%progbits,1
+ 594              		.align	2
+ 595              	.LC6:
+ 596 0000 41542B48 		.ascii	"AT+HTTPINIT\015\012\000"
+ 596      54545049 
+ 596      4E49540D 
+ 596      0A00
+ 597 000e 0000     		.align	2
+ 598              	.LC7:
+ 599 0010 41542B48 		.ascii	"AT+HTTPPARA=URL,\"%s\"\015\012\000"
+ 599      54545050 
+ 599      4152413D 
+ 599      55524C2C 
+ 599      22257322 
+ 600              		.section	.text.sim800c_connectServer,"ax",%progbits
+ 601              		.align	1
+ 602              		.global	sim800c_connectServer
+ 603              		.syntax unified
+ 604              		.thumb
+ 605              		.thumb_func
+ 607              	sim800c_connectServer:
+ 608              	.LVL51:
+ 609              	.LFB75:
+ 106:Core/Src/sim800c.c **** }
+ 107:Core/Src/sim800c.c **** 
+ 108:Core/Src/sim800c.c **** void sim800c_connectServer(char *link)
+ 109:Core/Src/sim800c.c **** {
+ 610              		.loc 1 109 1 view -0
+ 611              		.cfi_startproc
+ 612              		@ args = 0, pretend = 0, frame = 104
+ 613              		@ frame_needed = 0, uses_anonymous_args = 0
+ 614              		.loc 1 109 1 is_stmt 0 view .LVU114
+ 615 0000 30B5     		push	{r4, r5, lr}
+ 616              	.LCFI9:
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc328psh.s 			page 17
+
+
+ 617              		.cfi_def_cfa_offset 12
+ 618              		.cfi_offset 4, -12
+ 619              		.cfi_offset 5, -8
+ 620              		.cfi_offset 14, -4
+ 621 0002 9BB0     		sub	sp, sp, #108
+ 622              	.LCFI10:
+ 623              		.cfi_def_cfa_offset 120
+ 624 0004 0446     		mov	r4, r0
+ 110:Core/Src/sim800c.c ****     char urlServer[100] = {0};
+ 625              		.loc 1 110 5 is_stmt 1 view .LVU115
+ 626              		.loc 1 110 10 is_stmt 0 view .LVU116
+ 627 0006 0021     		movs	r1, #0
+ 628 0008 0191     		str	r1, [sp, #4]
+ 629 000a 6022     		movs	r2, #96
+ 630 000c 02A8     		add	r0, sp, #8
+ 631              	.LVL52:
+ 632              		.loc 1 110 10 view .LVU117
+ 633 000e FFF7FEFF 		bl	memset
+ 634              	.LVL53:
+ 111:Core/Src/sim800c.c ****     if(sim800c_sendCommand("AT+HTTPINIT\r\n", "OK\r\n", SIM_CHECK) != SIM_OK)
+ 635              		.loc 1 111 5 is_stmt 1 view .LVU118
+ 636              		.loc 1 111 8 is_stmt 0 view .LVU119
+ 637 0012 0122     		movs	r2, #1
+ 638 0014 0C49     		ldr	r1, .L48
+ 639 0016 0D48     		ldr	r0, .L48+4
+ 640 0018 FFF7FEFF 		bl	sim800c_sendCommand
+ 641              	.LVL54:
+ 642              		.loc 1 111 7 view .LVU120
+ 643 001c 0128     		cmp	r0, #1
+ 644 001e 0ED1     		bne	.L46
+ 112:Core/Src/sim800c.c ****     {
+ 113:Core/Src/sim800c.c ****         sim800c_errorHandle();
+ 114:Core/Src/sim800c.c ****     }
+ 115:Core/Src/sim800c.c ****     sprintf(urlServer, "AT+HTTPPARA=URL,\"%s\"\r\n", link);
+ 645              		.loc 1 115 5 is_stmt 1 view .LVU121
+ 646 0020 0B4D     		ldr	r5, .L48+8
+ 647 0022 2246     		mov	r2, r4
+ 648 0024 2946     		mov	r1, r5
+ 649 0026 01A8     		add	r0, sp, #4
+ 650 0028 FFF7FEFF 		bl	sprintf
+ 651              	.LVL55:
+ 116:Core/Src/sim800c.c ****     if(sim800c_sendCommand("AT+HTTPPARA=URL,\"%s\"\r\n", "OK\r\n", SIM_CHECK) != SIM_OK)
+ 652              		.loc 1 116 5 view .LVU122
+ 653              		.loc 1 116 8 is_stmt 0 view .LVU123
+ 654 002c 0122     		movs	r2, #1
+ 655 002e 0649     		ldr	r1, .L48
+ 656 0030 2846     		mov	r0, r5
+ 657 0032 FFF7FEFF 		bl	sim800c_sendCommand
+ 658              	.LVL56:
+ 659              		.loc 1 116 7 view .LVU124
+ 660 0036 0128     		cmp	r0, #1
+ 661 0038 03D1     		bne	.L47
+ 117:Core/Src/sim800c.c ****     {
+ 118:Core/Src/sim800c.c ****         sim800c_errorHandle();
+ 119:Core/Src/sim800c.c ****     }
+ 120:Core/Src/sim800c.c **** 
+ 121:Core/Src/sim800c.c **** }
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc328psh.s 			page 18
+
+
+ 662              		.loc 1 121 1 view .LVU125
+ 663 003a 1BB0     		add	sp, sp, #108
+ 664              	.LCFI11:
+ 665              		.cfi_remember_state
+ 666              		.cfi_def_cfa_offset 12
+ 667              		@ sp needed
+ 668 003c 30BD     		pop	{r4, r5, pc}
+ 669              	.LVL57:
+ 670              	.L46:
+ 671              	.LCFI12:
+ 672              		.cfi_restore_state
+ 113:Core/Src/sim800c.c ****     }
+ 673              		.loc 1 113 9 is_stmt 1 view .LVU126
+ 674 003e FFF7FEFF 		bl	sim800c_errorHandle
+ 675              	.LVL58:
+ 676              	.L47:
+ 118:Core/Src/sim800c.c ****     }
+ 677              		.loc 1 118 9 view .LVU127
+ 678 0042 FFF7FEFF 		bl	sim800c_errorHandle
+ 679              	.LVL59:
+ 680              	.L49:
+ 681 0046 00BF     		.align	2
+ 682              	.L48:
+ 683 0048 10000000 		.word	.LC3
+ 684 004c 00000000 		.word	.LC6
+ 685 0050 10000000 		.word	.LC7
+ 686              		.cfi_endproc
+ 687              	.LFE75:
+ 689              		.section	.rodata.sim800c_GSM_GPRS.str1.4,"aMS",%progbits,1
+ 690              		.align	2
+ 691              	.LC8:
+ 692 0000 2B435049 		.ascii	"+CPIN: READY\015\012\015\012OK\015\012\000"
+ 692      4E3A2052 
+ 692      45414459 
+ 692      0D0A0D0A 
+ 692      4F4B0D0A 
+ 693 0015 000000   		.align	2
+ 694              	.LC9:
+ 695 0018 41542B43 		.ascii	"AT+CPIN?\015\012\000"
+ 695      50494E3F 
+ 695      0D0A00
+ 696 0023 00       		.align	2
+ 697              	.LC10:
+ 698 0024 53657475 		.ascii	"Setup GSM, GPRS done\015\012\000"
+ 698      70204753 
+ 698      4D2C2047 
+ 698      50525320 
+ 698      646F6E65 
+ 699              		.section	.text.sim800c_GSM_GPRS,"ax",%progbits
+ 700              		.align	1
+ 701              		.global	sim800c_GSM_GPRS
+ 702              		.syntax unified
+ 703              		.thumb
+ 704              		.thumb_func
+ 706              	sim800c_GSM_GPRS:
+ 707              	.LFB76:
+ 122:Core/Src/sim800c.c **** 
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc328psh.s 			page 19
+
+
+ 123:Core/Src/sim800c.c **** void sim800c_GSM_GPRS(void)
+ 124:Core/Src/sim800c.c **** {
+ 708              		.loc 1 124 1 view -0
+ 709              		.cfi_startproc
+ 710              		@ args = 0, pretend = 0, frame = 0
+ 711              		@ frame_needed = 0, uses_anonymous_args = 0
+ 712 0000 08B5     		push	{r3, lr}
+ 713              	.LCFI13:
+ 714              		.cfi_def_cfa_offset 8
+ 715              		.cfi_offset 3, -8
+ 716              		.cfi_offset 14, -4
+ 125:Core/Src/sim800c.c ****     while(!(sim800c_sendCommand("AT+CPIN?\r\n", "+CPIN: READY\r\n\r\nOK\r\n", SIM_CHECK) == SIM_OK)
+ 717              		.loc 1 125 5 view .LVU129
+ 718              		.loc 1 125 10 is_stmt 0 view .LVU130
+ 719 0002 03E0     		b	.L51
+ 720              	.L52:
+ 126:Core/Src/sim800c.c ****     {
+ 127:Core/Src/sim800c.c ****         HAL_Delay(500);
+ 721              		.loc 1 127 9 is_stmt 1 view .LVU131
+ 722 0004 4FF4FA70 		mov	r0, #500
+ 723 0008 FFF7FEFF 		bl	HAL_Delay
+ 724              	.LVL60:
+ 725              	.L51:
+ 125:Core/Src/sim800c.c ****     while(!(sim800c_sendCommand("AT+CPIN?\r\n", "+CPIN: READY\r\n\r\nOK\r\n", SIM_CHECK) == SIM_OK)
+ 726              		.loc 1 125 10 view .LVU132
+ 125:Core/Src/sim800c.c ****     while(!(sim800c_sendCommand("AT+CPIN?\r\n", "+CPIN: READY\r\n\r\nOK\r\n", SIM_CHECK) == SIM_OK)
+ 727              		.loc 1 125 13 is_stmt 0 view .LVU133
+ 728 000c 0122     		movs	r2, #1
+ 729 000e 0649     		ldr	r1, .L54
+ 730 0010 0648     		ldr	r0, .L54+4
+ 731 0012 FFF7FEFF 		bl	sim800c_sendCommand
+ 732              	.LVL61:
+ 125:Core/Src/sim800c.c ****     while(!(sim800c_sendCommand("AT+CPIN?\r\n", "+CPIN: READY\r\n\r\nOK\r\n", SIM_CHECK) == SIM_OK)
+ 733              		.loc 1 125 10 view .LVU134
+ 734 0016 0128     		cmp	r0, #1
+ 735 0018 F4D1     		bne	.L52
+ 128:Core/Src/sim800c.c ****     }
+ 129:Core/Src/sim800c.c ****     // sim800c_sendCommand("AT+SAPBR=0,1\r\n", "OK\r\n", SIM_NOT_CHECK);
+ 130:Core/Src/sim800c.c ****     HAL_UART_Transmit(&huart1, (uint8_t*)"Setup GSM, GPRS done\r\n", strlen("Setup GSM, GPRS done\r
+ 736              		.loc 1 130 5 is_stmt 1 view .LVU135
+ 737 001a 6423     		movs	r3, #100
+ 738 001c 1622     		movs	r2, #22
+ 739 001e 0449     		ldr	r1, .L54+8
+ 740 0020 0448     		ldr	r0, .L54+12
+ 741 0022 FFF7FEFF 		bl	HAL_UART_Transmit
+ 742              	.LVL62:
+ 131:Core/Src/sim800c.c **** }
+ 743              		.loc 1 131 1 is_stmt 0 view .LVU136
+ 744 0026 08BD     		pop	{r3, pc}
+ 745              	.L55:
+ 746              		.align	2
+ 747              	.L54:
+ 748 0028 00000000 		.word	.LC8
+ 749 002c 18000000 		.word	.LC9
+ 750 0030 24000000 		.word	.LC10
+ 751 0034 00000000 		.word	huart1
+ 752              		.cfi_endproc
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc328psh.s 			page 20
+
+
+ 753              	.LFE76:
+ 755              		.section	.rodata.sim800c_init.str1.4,"aMS",%progbits,1
+ 756              		.align	2
+ 757              	.LC11:
+ 758 0000 41544530 		.ascii	"ATE0\015\012\000"
+ 758      0D0A00
+ 759 0007 00       		.align	2
+ 760              	.LC12:
+ 761 0008 41540D0A 		.ascii	"AT\015\012\000"
+ 761      00
+ 762              		.section	.text.sim800c_init,"ax",%progbits
+ 763              		.align	1
+ 764              		.global	sim800c_init
+ 765              		.syntax unified
+ 766              		.thumb
+ 767              		.thumb_func
+ 769              	sim800c_init:
+ 770              	.LFB69:
+  15:Core/Src/sim800c.c ****     while(!(sim800c_sendCommand("ATE0\r\n", "OK\r\n", SIM_NOT_CHECK) == SIM_OK))
+ 771              		.loc 1 15 1 is_stmt 1 view -0
+ 772              		.cfi_startproc
+ 773              		@ args = 0, pretend = 0, frame = 0
+ 774              		@ frame_needed = 0, uses_anonymous_args = 0
+ 775 0000 08B5     		push	{r3, lr}
+ 776              	.LCFI14:
+ 777              		.cfi_def_cfa_offset 8
+ 778              		.cfi_offset 3, -8
+ 779              		.cfi_offset 14, -4
+  16:Core/Src/sim800c.c ****     {
+ 780              		.loc 1 16 5 view .LVU138
+  16:Core/Src/sim800c.c ****     {
+ 781              		.loc 1 16 10 is_stmt 0 view .LVU139
+ 782 0002 03E0     		b	.L57
+ 783              	.L58:
+  18:Core/Src/sim800c.c ****     }
+ 784              		.loc 1 18 9 is_stmt 1 view .LVU140
+ 785 0004 4FF4FA70 		mov	r0, #500
+ 786 0008 FFF7FEFF 		bl	HAL_Delay
+ 787              	.LVL63:
+ 788              	.L57:
+  16:Core/Src/sim800c.c ****     {
+ 789              		.loc 1 16 10 view .LVU141
+  16:Core/Src/sim800c.c ****     {
+ 790              		.loc 1 16 13 is_stmt 0 view .LVU142
+ 791 000c 0022     		movs	r2, #0
+ 792 000e 0A49     		ldr	r1, .L62
+ 793 0010 0A48     		ldr	r0, .L62+4
+ 794 0012 FFF7FEFF 		bl	sim800c_sendCommand
+ 795              	.LVL64:
+  16:Core/Src/sim800c.c ****     {
+ 796              		.loc 1 16 10 view .LVU143
+ 797 0016 0128     		cmp	r0, #1
+ 798 0018 F4D1     		bne	.L58
+ 799 001a 03E0     		b	.L59
+ 800              	.L60:
+  22:Core/Src/sim800c.c ****     }
+ 801              		.loc 1 22 9 is_stmt 1 view .LVU144
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc328psh.s 			page 21
+
+
+ 802 001c 4FF4FA70 		mov	r0, #500
+ 803 0020 FFF7FEFF 		bl	HAL_Delay
+ 804              	.LVL65:
+ 805              	.L59:
+  20:Core/Src/sim800c.c ****     {
+ 806              		.loc 1 20 10 view .LVU145
+  20:Core/Src/sim800c.c ****     {
+ 807              		.loc 1 20 13 is_stmt 0 view .LVU146
+ 808 0024 0122     		movs	r2, #1
+ 809 0026 0449     		ldr	r1, .L62
+ 810 0028 0548     		ldr	r0, .L62+8
+ 811 002a FFF7FEFF 		bl	sim800c_sendCommand
+ 812              	.LVL66:
+  20:Core/Src/sim800c.c ****     {
+ 813              		.loc 1 20 10 view .LVU147
+ 814 002e 0128     		cmp	r0, #1
+ 815 0030 F4D1     		bne	.L60
+  24:Core/Src/sim800c.c **** }
+ 816              		.loc 1 24 5 is_stmt 1 view .LVU148
+ 817 0032 FFF7FEFF 		bl	sim800c_GSM_GPRS
+ 818              	.LVL67:
+  25:Core/Src/sim800c.c **** 
+ 819              		.loc 1 25 1 is_stmt 0 view .LVU149
+ 820 0036 08BD     		pop	{r3, pc}
+ 821              	.L63:
+ 822              		.align	2
+ 823              	.L62:
+ 824 0038 10000000 		.word	.LC3
+ 825 003c 00000000 		.word	.LC11
+ 826 0040 08000000 		.word	.LC12
+ 827              		.cfi_endproc
+ 828              	.LFE69:
+ 830              		.global	simRxCplt
+ 831              		.global	simRxResponse
+ 832              		.global	simRxData
+ 833              		.global	simRxIndex
+ 834              		.global	simRxBuf
+ 835              		.section	.bss.simRxBuf,"aw",%nobits
+ 836              		.align	2
+ 837              		.set	.LANCHOR4,. + 0
+ 840              	simRxBuf:
+ 841 0000 00000000 		.space	100
+ 841      00000000 
+ 841      00000000 
+ 841      00000000 
+ 841      00000000 
+ 842              		.section	.bss.simRxCplt,"aw",%nobits
+ 843              		.set	.LANCHOR1,. + 0
+ 846              	simRxCplt:
+ 847 0000 00       		.space	1
+ 848              		.section	.bss.simRxData,"aw",%nobits
+ 849              		.set	.LANCHOR0,. + 0
+ 852              	simRxData:
+ 853 0000 00       		.space	1
+ 854              		.section	.bss.simRxIndex,"aw",%nobits
+ 855              		.align	2
+ 856              		.set	.LANCHOR3,. + 0
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc328psh.s 			page 22
+
+
+ 859              	simRxIndex:
+ 860 0000 00000000 		.space	4
+ 861              		.section	.bss.simRxResponse,"aw",%nobits
+ 862              		.align	2
+ 863              		.set	.LANCHOR2,. + 0
+ 866              	simRxResponse:
+ 867 0000 00000000 		.space	100
+ 867      00000000 
+ 867      00000000 
+ 867      00000000 
+ 867      00000000 
+ 868              		.text
+ 869              	.Letext0:
+ 870              		.file 3 "c:\\program files (x86)\\gcc-arm-none-eabi-10.3-2021.10-win32\\gcc-arm-none-eabi-10.3-202
+ 871              		.file 4 "c:\\program files (x86)\\gcc-arm-none-eabi-10.3-2021.10-win32\\gcc-arm-none-eabi-10.3-202
+ 872              		.file 5 "Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103xb.h"
+ 873              		.file 6 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_def.h"
+ 874              		.file 7 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_dma.h"
+ 875              		.file 8 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h"
+ 876              		.file 9 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h"
+ 877              		.file 10 "Core/Inc/sim800c.h"
+ 878              		.file 11 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h"
+ 879              		.file 12 "c:\\program files (x86)\\gcc-arm-none-eabi-10.3-2021.10-win32\\gcc-arm-none-eabi-10.3-20
+ 880              		.file 13 "c:\\program files (x86)\\gcc-arm-none-eabi-10.3-2021.10-win32\\gcc-arm-none-eabi-10.3-20
+ 881              		.file 14 "<built-in>"
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc328psh.s 			page 23
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 sim800c.c
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:18     .text.sim800c_debug:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:24     .text.sim800c_debug:00000000 sim800c_debug
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:56     .text.sim800c_debug:00000010 $d
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:61     .text.sim800c_sendCommand:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:67     .text.sim800c_sendCommand:00000000 sim800c_sendCommand
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:204    .text.sim800c_sendCommand:00000098 $d
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:213    .rodata.sim800c_callback.str1.4:00000000 $d
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:217    .text.sim800c_callback:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:223    .text.sim800c_callback:00000000 sim800c_callback
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:292    .text.sim800c_callback:00000050 $d
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:301    .text.sim800c_timerCallback:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:307    .text.sim800c_timerCallback:00000000 sim800c_timerCallback
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:383    .text.sim800c_timerCallback:0000005c $d
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:393    .rodata.sim800c_errorHandle.str1.4:00000000 $d
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:397    .text.sim800c_errorHandle:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:403    .text.sim800c_errorHandle:00000000 sim800c_errorHandle
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:444    .text.sim800c_errorHandle:00000010 $d
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:449    .rodata.sim800c_sendSMS.str1.4:00000000 $d
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:462    .text.sim800c_sendSMS:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:468    .text.sim800c_sendSMS:00000000 sim800c_sendSMS
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:586    .text.sim800c_sendSMS:00000078 $d
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:594    .rodata.sim800c_connectServer.str1.4:00000000 $d
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:601    .text.sim800c_connectServer:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:607    .text.sim800c_connectServer:00000000 sim800c_connectServer
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:683    .text.sim800c_connectServer:00000048 $d
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:690    .rodata.sim800c_GSM_GPRS.str1.4:00000000 $d
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:700    .text.sim800c_GSM_GPRS:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:706    .text.sim800c_GSM_GPRS:00000000 sim800c_GSM_GPRS
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:748    .text.sim800c_GSM_GPRS:00000028 $d
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:756    .rodata.sim800c_init.str1.4:00000000 $d
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:763    .text.sim800c_init:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:769    .text.sim800c_init:00000000 sim800c_init
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:824    .text.sim800c_init:00000038 $d
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:846    .bss.simRxCplt:00000000 simRxCplt
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:866    .bss.simRxResponse:00000000 simRxResponse
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:852    .bss.simRxData:00000000 simRxData
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:859    .bss.simRxIndex:00000000 simRxIndex
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:840    .bss.simRxBuf:00000000 simRxBuf
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:836    .bss.simRxBuf:00000000 $d
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:847    .bss.simRxCplt:00000000 $d
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:853    .bss.simRxData:00000000 $d
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:855    .bss.simRxIndex:00000000 $d
+C:\Users\dung\AppData\Local\Temp\cc328psh.s:862    .bss.simRxResponse:00000000 $d
+
+UNDEFINED SYMBOLS
+HAL_UART_Transmit
+huart1
+HAL_UART_Receive_IT
+strlen
+HAL_UART_Transmit_IT
+HAL_TIM_Base_Start_IT
+strstr
+memset
+huart2
+htim2
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc328psh.s 			page 24
+
+
+HAL_TIM_Base_Stop_IT
+strchr
+memcpy
+sprintf
+HAL_Delay

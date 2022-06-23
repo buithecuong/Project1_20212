@@ -1,0 +1,7 @@
+Removed Pin From Net: NetName=NetC2_2 Pin=C4-1
+Change Component Footprint: Designator=C4 Old Footprint=CAP_3216 New Footprint=CAP_0805
+Change Component Comment : Designator=C4 Old Comment=Pad Lipo Battery New Comment=LiPo Battery
+Added Pin To Net: NetName=LIPO_CHARGER Pin=C4-1
+Added Pin To Net: NetName=NetC2_2 Pin=C4-2
+Change Room Name: Old Name=Designator_2 New Name=Designator
+Added Room: Name=Designator

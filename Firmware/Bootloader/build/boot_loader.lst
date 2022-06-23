@@ -1,0 +1,42 @@
+ARM GAS  C:\Users\dung\AppData\Local\Temp\ccRb1Xzy.s 			page 1
+
+
+   1              		.cpu cortex-m3
+   2              		.arch armv7-m
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"boot_loader.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.global	FLASH_Erase
+  18              		.section	.bss.FLASH_Erase,"aw",%nobits
+  19              		.align	2
+  22              	FLASH_Erase:
+  23 0000 00000000 		.space	16
+  23      00000000 
+  23      00000000 
+  23      00000000 
+  24              		.text
+  25              	.Letext0:
+  26              		.file 1 "c:\\program files (x86)\\gcc-arm-none-eabi-10.3-2021.10-win32\\gcc-arm-none-eabi-10.3-202
+  27              		.file 2 "c:\\program files (x86)\\gcc-arm-none-eabi-10.3-2021.10-win32\\gcc-arm-none-eabi-10.3-202
+  28              		.file 3 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h"
+  29              		.file 4 "Core/Src/boot_loader.c"
+ARM GAS  C:\Users\dung\AppData\Local\Temp\ccRb1Xzy.s 			page 2
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 boot_loader.c
+C:\Users\dung\AppData\Local\Temp\ccRb1Xzy.s:22     .bss.FLASH_Erase:00000000 FLASH_Erase
+C:\Users\dung\AppData\Local\Temp\ccRb1Xzy.s:19     .bss.FLASH_Erase:00000000 $d
+
+NO UNDEFINED SYMBOLS

@@ -1,0 +1,6 @@
+Removed Pin From Net: NetName=MCU_RESET Pin=U7-7
+Change Component Designator: OldDesignator=NET NewDesignator=LED1
+Change Component Designator: OldDesignator=TIMEPULSE NewDesignator=LED2
+Added Pin To Net: NetName=MCU_RESET Pin=U7-14
+Added Room: Name=Designator
+Added Room: Name=Designator

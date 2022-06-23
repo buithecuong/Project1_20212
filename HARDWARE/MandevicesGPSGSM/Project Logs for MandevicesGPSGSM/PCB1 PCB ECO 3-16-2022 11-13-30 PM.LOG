@@ -1,0 +1,4 @@
+Change Component Designator: OldDesignator=NETLIGHT NewDesignator=LED1
+Added Pin To Net: NetName=LIPO_BATTERY Pin=LED1-1
+Added Room: Name=Designator
+Added Room: Name=Designator

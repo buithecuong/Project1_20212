@@ -1,0 +1,4 @@
+Record=TopLevelDocument|FileName=Sheet1.SchDoc|SheetNumber=1
+Record=SheetSymbol|SourceDocument=Sheet1.SchDoc|Designator=Designator|SchDesignator=Designator|FileName=Charger_USB.SchDoc|SheetNumber=2|SymbolType=Normal|RawFileName=Charger_USB.SchDoc|DesignItemId= |SourceLibraryName= |ObjectKind=Sheet Symbol|RevisionGUID= |ItemGUID= |VaultGUID= 
+Record=SheetSymbol|SourceDocument=Sheet1.SchDoc|Designator=Designator|SchDesignator=Designator|FileName=STM32F103C8T6.SchDoc|SheetNumber=4|SymbolType=Normal|RawFileName=STM32F103C8T6.SchDoc|DesignItemId= |SourceLibraryName= |ObjectKind=Sheet Symbol|RevisionGUID= |ItemGUID= |VaultGUID= 
+Record=SheetSymbol|SourceDocument=Sheet1.SchDoc|Designator=Designator|SchDesignator=Designator|FileName=SIM800C_L70.SchDoc|SheetNumber=3|SymbolType=Normal|RawFileName=SIM800C_L70.SchDoc|DesignItemId= |SourceLibraryName= |ObjectKind=Sheet Symbol|RevisionGUID= |ItemGUID= |VaultGUID= 

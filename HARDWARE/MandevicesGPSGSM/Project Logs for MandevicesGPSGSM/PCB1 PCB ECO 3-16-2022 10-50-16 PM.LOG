@@ -1,0 +1,10 @@
+Removed Pin From Net: NetName=SIM_DATA Pin=C10-2
+Removed Pin From Net: NetName=SIM_DATA Pin=R8-2
+Removed Pin From Net: NetName=SIM_DATA Pin=U7-15
+Change Net Name : Old Net Name=SIM_DATA New Net Name=SIM_VDD
+Added Pin To Net: NetName=SIM_DATA Pin=C10-2
+Added Pin To Net: NetName=SIM_DATA Pin=R8-2
+Added Pin To Net: NetName=SIM_DATA Pin=U7-15
+Added Net: Name=SIM_DATA
+Change Room Name: Old Name=Designator_2 New Name=Designator
+Added Room: Name=Designator

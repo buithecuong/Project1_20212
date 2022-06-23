@@ -1,0 +1,8 @@
+Removed Pin From Net: NetName=BUT_ADC Pin=U8-45
+Removed Pin From Net: NetName=BUT_SOS Pin=U8-46
+Change Component Designator: OldDesignator=RESET NewDesignator=B3
+Change Component Designator: OldDesignator=SOS NewDesignator=B4
+Added Pin To Net: NetName=BUT_ADC Pin=U8-26
+Added Pin To Net: NetName=BUT_SOS Pin=U8-27
+Added Room: Name=Designator
+Added Room: Name=Designator

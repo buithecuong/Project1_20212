@@ -1,0 +1,13 @@
+Removed Pin From Net: NetName=MCU_RESET Pin=U8-39
+Change Component Comment : Designator=R29 Old Comment=10k New Comment=100k
+Change Component Designator: OldDesignator=+ - NewDesignator=C4
+Change Component Designator: OldDesignator=2 NewDesignator=R13
+Change Component Designator: OldDesignator=2 NewDesignator=U6
+Change Component Designator: OldDesignator=ADC NewDesignator=B5
+Change Component Designator: OldDesignator=RESET NewDesignator=B3
+Change Component Designator: OldDesignator=SOS NewDesignator=B4
+Change Component Designator: OldDesignator=Switch power NewDesignator=C1
+Added Pin To Net: NetName=MCU_RESET Pin=U8-7
+Added Room: Name=Designator
+Added Room: Name=Designator
+Added Room: Name=Designator

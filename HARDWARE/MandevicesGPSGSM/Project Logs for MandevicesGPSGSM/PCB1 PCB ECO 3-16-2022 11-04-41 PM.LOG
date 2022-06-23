@@ -1,0 +1,12 @@
+Added Pin To Net: NetName=GND Pin=B1-15
+Added Pin To Net: NetName=GPS_RESET Pin=B1-19
+Added Pin To Net: NetName=GND Pin=B2-15
+Added Pin To Net: NetName=PWRKEY Pin=B2-19
+Added Pin To Net: NetName=GND Pin=B3-15
+Added Pin To Net: NetName=MCU_RESET Pin=B3-19
+Added Pin To Net: NetName=GND Pin=B4-15
+Added Pin To Net: NetName=BUT_SOS Pin=B4-19
+Added Pin To Net: NetName=GND Pin=B5-15
+Added Pin To Net: NetName=BUT_ADC Pin=B5-19
+Change Room Name: Old Name=Designator_2 New Name=Designator
+Added Room: Name=Designator

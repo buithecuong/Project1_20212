@@ -1,0 +1,498 @@
+ARM GAS  C:\Users\dung\AppData\Local\Temp\ccd31KkB.s 			page 1
+
+
+   1              		.cpu cortex-m3
+   2              		.arch armv7-m
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"stimer.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.startTimer,"ax",%progbits
+  18              		.align	1
+  19              		.global	startTimer
+  20              		.syntax unified
+  21              		.thumb
+  22              		.thumb_func
+  24              	startTimer:
+  25              	.LVL0:
+  26              	.LFB65:
+  27              		.file 1 "Core/Src/stimer.c"
+   1:Core/Src/stimer.c **** #include "stimer.h"
+   2:Core/Src/stimer.c **** 
+   3:Core/Src/stimer.c **** #define TIMER_EXPIRED(timer) ((uint32_t)(HAL_GetTick() - timer.start) >= timer.time)
+   4:Core/Src/stimer.c **** 
+   5:Core/Src/stimer.c **** typedef struct sTimer 
+   6:Core/Src/stimer.c **** {
+   7:Core/Src/stimer.c **** 	uint32_t start;
+   8:Core/Src/stimer.c **** 	uint32_t time;
+   9:Core/Src/stimer.c **** 	TimerCallback callback;
+  10:Core/Src/stimer.c **** 	void* params;
+  11:Core/Src/stimer.c **** } sTimer;
+  12:Core/Src/stimer.c **** 
+  13:Core/Src/stimer.c **** static sTimer softTimer[MAX_TIMER_COUNT] = {0};
+  14:Core/Src/stimer.c **** 
+  15:Core/Src/stimer.c **** void startTimer(uint32_t ms, TimerCallback callback, void* data) 
+  16:Core/Src/stimer.c **** {
+  28              		.loc 1 16 1 view -0
+  29              		.cfi_startproc
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32              		.loc 1 16 1 is_stmt 0 view .LVU1
+  33 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+  34              	.LCFI0:
+  35              		.cfi_def_cfa_offset 24
+  36              		.cfi_offset 3, -24
+  37              		.cfi_offset 4, -20
+  38              		.cfi_offset 5, -16
+  39              		.cfi_offset 6, -12
+  40              		.cfi_offset 7, -8
+  41              		.cfi_offset 14, -4
+  42 0002 0746     		mov	r7, r0
+ARM GAS  C:\Users\dung\AppData\Local\Temp\ccd31KkB.s 			page 2
+
+
+  43 0004 0D46     		mov	r5, r1
+  44 0006 1646     		mov	r6, r2
+  17:Core/Src/stimer.c ****     int index;
+  45              		.loc 1 17 5 is_stmt 1 view .LVU2
+  18:Core/Src/stimer.c **** 	for (index = 0; index < MAX_TIMER_COUNT; index++) {
+  46              		.loc 1 18 2 view .LVU3
+  47              	.LVL1:
+  48              		.loc 1 18 13 is_stmt 0 view .LVU4
+  49 0008 0024     		movs	r4, #0
+  50              	.LVL2:
+  51              	.L2:
+  52              		.loc 1 18 18 is_stmt 1 discriminator 1 view .LVU5
+  53              		.loc 1 18 2 is_stmt 0 discriminator 1 view .LVU6
+  54 000a 1F2C     		cmp	r4, #31
+  55 000c 23DC     		bgt	.L1
+  19:Core/Src/stimer.c **** 		if ((softTimer[index].callback == NULL) || (softTimer[index].callback == callback)) 
+  56              		.loc 1 19 3 is_stmt 1 view .LVU7
+  57              		.loc 1 19 24 is_stmt 0 view .LVU8
+  58 000e 124B     		ldr	r3, .L11
+  59 0010 03EB0413 		add	r3, r3, r4, lsl #4
+  60 0014 9B68     		ldr	r3, [r3, #8]
+  61              		.loc 1 19 6 view .LVU9
+  62 0016 1BB1     		cbz	r3, .L3
+  63              		.loc 1 19 43 discriminator 1 view .LVU10
+  64 0018 AB42     		cmp	r3, r5
+  65 001a 01D0     		beq	.L3
+  18:Core/Src/stimer.c **** 	for (index = 0; index < MAX_TIMER_COUNT; index++) {
+  66              		.loc 1 18 43 is_stmt 1 discriminator 2 view .LVU11
+  18:Core/Src/stimer.c **** 	for (index = 0; index < MAX_TIMER_COUNT; index++) {
+  67              		.loc 1 18 48 is_stmt 0 discriminator 2 view .LVU12
+  68 001c 0134     		adds	r4, r4, #1
+  69              	.LVL3:
+  18:Core/Src/stimer.c **** 	for (index = 0; index < MAX_TIMER_COUNT; index++) {
+  70              		.loc 1 18 48 discriminator 2 view .LVU13
+  71 001e F4E7     		b	.L2
+  72              	.L3:
+  20:Core/Src/stimer.c **** 		{
+  21:Core/Src/stimer.c **** 			softTimer[index].start = HAL_GetTick();
+  73              		.loc 1 21 4 is_stmt 1 view .LVU14
+  74              		.loc 1 21 29 is_stmt 0 view .LVU15
+  75 0020 FFF7FEFF 		bl	HAL_GetTick
+  76              	.LVL4:
+  77              		.loc 1 21 27 view .LVU16
+  78 0024 0C4A     		ldr	r2, .L11
+  79 0026 2101     		lsls	r1, r4, #4
+  80 0028 02EB0413 		add	r3, r2, r4, lsl #4
+  81 002c 5050     		str	r0, [r2, r1]
+  22:Core/Src/stimer.c **** 			softTimer[index].callback = callback;
+  82              		.loc 1 22 4 is_stmt 1 view .LVU17
+  83              		.loc 1 22 30 is_stmt 0 view .LVU18
+  84 002e 9D60     		str	r5, [r3, #8]
+  23:Core/Src/stimer.c **** 			softTimer[index].time = ms;
+  85              		.loc 1 23 4 is_stmt 1 view .LVU19
+  86              		.loc 1 23 26 is_stmt 0 view .LVU20
+  87 0030 5F60     		str	r7, [r3, #4]
+  24:Core/Src/stimer.c **** 			softTimer[index].params = data;
+  88              		.loc 1 24 4 is_stmt 1 view .LVU21
+ARM GAS  C:\Users\dung\AppData\Local\Temp\ccd31KkB.s 			page 3
+
+
+  89              		.loc 1 24 28 is_stmt 0 view .LVU22
+  90 0032 DE60     		str	r6, [r3, #12]
+  25:Core/Src/stimer.c **** 
+  26:Core/Src/stimer.c **** 			for (index = index + 1; index < MAX_TIMER_COUNT; index++) 
+  91              		.loc 1 26 4 is_stmt 1 view .LVU23
+  92              		.loc 1 26 15 is_stmt 0 view .LVU24
+  93 0034 0134     		adds	r4, r4, #1
+  94              	.LVL5:
+  95              		.loc 1 26 4 view .LVU25
+  96 0036 00E0     		b	.L5
+  97              	.L6:
+  98              		.loc 1 26 53 is_stmt 1 discriminator 2 view .LVU26
+  99              		.loc 1 26 58 is_stmt 0 discriminator 2 view .LVU27
+ 100 0038 0134     		adds	r4, r4, #1
+ 101              	.LVL6:
+ 102              	.L5:
+ 103              		.loc 1 26 28 is_stmt 1 discriminator 1 view .LVU28
+ 104              		.loc 1 26 4 is_stmt 0 discriminator 1 view .LVU29
+ 105 003a 1F2C     		cmp	r4, #31
+ 106 003c 0BDC     		bgt	.L1
+  27:Core/Src/stimer.c **** 			{
+  28:Core/Src/stimer.c **** 				if (softTimer[index].callback == callback)
+ 107              		.loc 1 28 5 is_stmt 1 view .LVU30
+ 108              		.loc 1 28 25 is_stmt 0 view .LVU31
+ 109 003e 064B     		ldr	r3, .L11
+ 110 0040 03EB0413 		add	r3, r3, r4, lsl #4
+ 111 0044 9B68     		ldr	r3, [r3, #8]
+ 112              		.loc 1 28 8 view .LVU32
+ 113 0046 AB42     		cmp	r3, r5
+ 114 0048 F6D1     		bne	.L6
+  29:Core/Src/stimer.c **** 					softTimer[index].callback = NULL;
+ 115              		.loc 1 29 6 is_stmt 1 view .LVU33
+ 116              		.loc 1 29 32 is_stmt 0 view .LVU34
+ 117 004a 034B     		ldr	r3, .L11
+ 118 004c 03EB0413 		add	r3, r3, r4, lsl #4
+ 119 0050 0022     		movs	r2, #0
+ 120 0052 9A60     		str	r2, [r3, #8]
+ 121 0054 F0E7     		b	.L6
+ 122              	.L1:
+  30:Core/Src/stimer.c **** 			}
+  31:Core/Src/stimer.c **** 			return;
+  32:Core/Src/stimer.c **** 		}
+  33:Core/Src/stimer.c **** 	}
+  34:Core/Src/stimer.c **** }
+ 123              		.loc 1 34 1 view .LVU35
+ 124 0056 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 125              	.LVL7:
+ 126              	.L12:
+ 127              		.loc 1 34 1 view .LVU36
+ 128              		.align	2
+ 129              	.L11:
+ 130 0058 00000000 		.word	.LANCHOR0
+ 131              		.cfi_endproc
+ 132              	.LFE65:
+ 134              		.section	.text.cancelTimer,"ax",%progbits
+ 135              		.align	1
+ 136              		.global	cancelTimer
+ARM GAS  C:\Users\dung\AppData\Local\Temp\ccd31KkB.s 			page 4
+
+
+ 137              		.syntax unified
+ 138              		.thumb
+ 139              		.thumb_func
+ 141              	cancelTimer:
+ 142              	.LVL8:
+ 143              	.LFB66:
+  35:Core/Src/stimer.c **** 
+  36:Core/Src/stimer.c **** void cancelTimer(TimerCallback callback) 
+  37:Core/Src/stimer.c **** {
+ 144              		.loc 1 37 1 is_stmt 1 view -0
+ 145              		.cfi_startproc
+ 146              		@ args = 0, pretend = 0, frame = 0
+ 147              		@ frame_needed = 0, uses_anonymous_args = 0
+ 148              		@ link register save eliminated.
+  38:Core/Src/stimer.c ****     int index;
+ 149              		.loc 1 38 5 view .LVU38
+  39:Core/Src/stimer.c **** 	for (index = 0; index < MAX_TIMER_COUNT; index++) 
+ 150              		.loc 1 39 2 view .LVU39
+ 151              		.loc 1 39 13 is_stmt 0 view .LVU40
+ 152 0000 0023     		movs	r3, #0
+ 153              	.LVL9:
+ 154              	.L14:
+ 155              		.loc 1 39 18 is_stmt 1 discriminator 1 view .LVU41
+ 156              		.loc 1 39 2 is_stmt 0 discriminator 1 view .LVU42
+ 157 0002 1F2B     		cmp	r3, #31
+ 158 0004 0DDC     		bgt	.L18
+  40:Core/Src/stimer.c **** 	{
+  41:Core/Src/stimer.c **** 		if (softTimer[index].callback == callback) 
+ 159              		.loc 1 41 3 is_stmt 1 view .LVU43
+ 160              		.loc 1 41 23 is_stmt 0 view .LVU44
+ 161 0006 074A     		ldr	r2, .L20
+ 162 0008 02EB0312 		add	r2, r2, r3, lsl #4
+ 163 000c 9268     		ldr	r2, [r2, #8]
+ 164              		.loc 1 41 6 view .LVU45
+ 165 000e 8242     		cmp	r2, r0
+ 166 0010 01D0     		beq	.L19
+  39:Core/Src/stimer.c **** 	for (index = 0; index < MAX_TIMER_COUNT; index++) 
+ 167              		.loc 1 39 43 is_stmt 1 discriminator 2 view .LVU46
+  39:Core/Src/stimer.c **** 	for (index = 0; index < MAX_TIMER_COUNT; index++) 
+ 168              		.loc 1 39 48 is_stmt 0 discriminator 2 view .LVU47
+ 169 0012 0133     		adds	r3, r3, #1
+ 170              	.LVL10:
+  39:Core/Src/stimer.c **** 	for (index = 0; index < MAX_TIMER_COUNT; index++) 
+ 171              		.loc 1 39 48 discriminator 2 view .LVU48
+ 172 0014 F5E7     		b	.L14
+ 173              	.L19:
+  42:Core/Src/stimer.c **** 		{
+  43:Core/Src/stimer.c **** 			softTimer[index].callback = NULL;
+ 174              		.loc 1 43 4 is_stmt 1 view .LVU49
+ 175              		.loc 1 43 30 is_stmt 0 view .LVU50
+ 176 0016 034A     		ldr	r2, .L20
+ 177 0018 02EB0313 		add	r3, r2, r3, lsl #4
+ 178              	.LVL11:
+ 179              		.loc 1 43 30 view .LVU51
+ 180 001c 0022     		movs	r2, #0
+ 181 001e 9A60     		str	r2, [r3, #8]
+  44:Core/Src/stimer.c **** 			break;
+ARM GAS  C:\Users\dung\AppData\Local\Temp\ccd31KkB.s 			page 5
+
+
+ 182              		.loc 1 44 4 is_stmt 1 view .LVU52
+ 183 0020 7047     		bx	lr
+ 184              	.LVL12:
+ 185              	.L18:
+  45:Core/Src/stimer.c **** 		}
+  46:Core/Src/stimer.c **** 	}
+  47:Core/Src/stimer.c **** }
+ 186              		.loc 1 47 1 is_stmt 0 view .LVU53
+ 187 0022 7047     		bx	lr
+ 188              	.L21:
+ 189              		.align	2
+ 190              	.L20:
+ 191 0024 00000000 		.word	.LANCHOR0
+ 192              		.cfi_endproc
+ 193              	.LFE66:
+ 195              		.section	.text.isTimerRunning,"ax",%progbits
+ 196              		.align	1
+ 197              		.global	isTimerRunning
+ 198              		.syntax unified
+ 199              		.thumb
+ 200              		.thumb_func
+ 202              	isTimerRunning:
+ 203              	.LVL13:
+ 204              	.LFB67:
+  48:Core/Src/stimer.c **** 
+  49:Core/Src/stimer.c **** bool isTimerRunning(TimerCallback callback) {
+ 205              		.loc 1 49 45 is_stmt 1 view -0
+ 206              		.cfi_startproc
+ 207              		@ args = 0, pretend = 0, frame = 0
+ 208              		@ frame_needed = 0, uses_anonymous_args = 0
+ 209              		@ link register save eliminated.
+  50:Core/Src/stimer.c ****     int index;
+ 210              		.loc 1 50 5 view .LVU55
+  51:Core/Src/stimer.c **** 	for (index = 0; index < MAX_TIMER_COUNT; index++) 
+ 211              		.loc 1 51 2 view .LVU56
+ 212              		.loc 1 51 13 is_stmt 0 view .LVU57
+ 213 0000 0023     		movs	r3, #0
+ 214              	.LVL14:
+ 215              	.L23:
+ 216              		.loc 1 51 18 is_stmt 1 discriminator 1 view .LVU58
+ 217              		.loc 1 51 2 is_stmt 0 discriminator 1 view .LVU59
+ 218 0002 1F2B     		cmp	r3, #31
+ 219 0004 07DC     		bgt	.L27
+  52:Core/Src/stimer.c **** 	{
+  53:Core/Src/stimer.c **** 		if (softTimer[index].callback == callback)
+ 220              		.loc 1 53 3 is_stmt 1 view .LVU60
+ 221              		.loc 1 53 23 is_stmt 0 view .LVU61
+ 222 0006 064A     		ldr	r2, .L28
+ 223 0008 02EB0312 		add	r2, r2, r3, lsl #4
+ 224 000c 9268     		ldr	r2, [r2, #8]
+ 225              		.loc 1 53 6 view .LVU62
+ 226 000e 8242     		cmp	r2, r0
+ 227 0010 03D0     		beq	.L26
+  51:Core/Src/stimer.c **** 	for (index = 0; index < MAX_TIMER_COUNT; index++) 
+ 228              		.loc 1 51 43 is_stmt 1 discriminator 2 view .LVU63
+  51:Core/Src/stimer.c **** 	for (index = 0; index < MAX_TIMER_COUNT; index++) 
+ 229              		.loc 1 51 48 is_stmt 0 discriminator 2 view .LVU64
+ARM GAS  C:\Users\dung\AppData\Local\Temp\ccd31KkB.s 			page 6
+
+
+ 230 0012 0133     		adds	r3, r3, #1
+ 231              	.LVL15:
+  51:Core/Src/stimer.c **** 	for (index = 0; index < MAX_TIMER_COUNT; index++) 
+ 232              		.loc 1 51 48 discriminator 2 view .LVU65
+ 233 0014 F5E7     		b	.L23
+ 234              	.L27:
+  54:Core/Src/stimer.c **** 			return true;
+  55:Core/Src/stimer.c **** 	}
+  56:Core/Src/stimer.c **** 	return false;
+ 235              		.loc 1 56 9 view .LVU66
+ 236 0016 0020     		movs	r0, #0
+ 237              	.LVL16:
+ 238              		.loc 1 56 9 view .LVU67
+ 239 0018 7047     		bx	lr
+ 240              	.LVL17:
+ 241              	.L26:
+  54:Core/Src/stimer.c **** 			return true;
+ 242              		.loc 1 54 11 view .LVU68
+ 243 001a 0120     		movs	r0, #1
+ 244              	.LVL18:
+  57:Core/Src/stimer.c **** }
+ 245              		.loc 1 57 1 view .LVU69
+ 246 001c 7047     		bx	lr
+ 247              	.L29:
+ 248 001e 00BF     		.align	2
+ 249              	.L28:
+ 250 0020 00000000 		.word	.LANCHOR0
+ 251              		.cfi_endproc
+ 252              	.LFE67:
+ 254              		.section	.text.processTimerEvents,"ax",%progbits
+ 255              		.align	1
+ 256              		.global	processTimerEvents
+ 257              		.syntax unified
+ 258              		.thumb
+ 259              		.thumb_func
+ 261              	processTimerEvents:
+ 262              	.LFB68:
+  58:Core/Src/stimer.c **** 
+  59:Core/Src/stimer.c **** void processTimerEvents(void) 
+  60:Core/Src/stimer.c **** {
+ 263              		.loc 1 60 1 is_stmt 1 view -0
+ 264              		.cfi_startproc
+ 265              		@ args = 0, pretend = 0, frame = 0
+ 266              		@ frame_needed = 0, uses_anonymous_args = 0
+ 267 0000 10B5     		push	{r4, lr}
+ 268              	.LCFI1:
+ 269              		.cfi_def_cfa_offset 8
+ 270              		.cfi_offset 4, -8
+ 271              		.cfi_offset 14, -4
+  61:Core/Src/stimer.c ****     int index;
+ 272              		.loc 1 61 5 view .LVU71
+  62:Core/Src/stimer.c **** 	static void* param = NULL;
+ 273              		.loc 1 62 2 view .LVU72
+  63:Core/Src/stimer.c **** 	static TimerCallback callback = NULL;
+ 274              		.loc 1 63 2 view .LVU73
+  64:Core/Src/stimer.c **** 
+  65:Core/Src/stimer.c ****     for (index = 0; index < MAX_TIMER_COUNT; index++)
+ARM GAS  C:\Users\dung\AppData\Local\Temp\ccd31KkB.s 			page 7
+
+
+ 275              		.loc 1 65 5 view .LVU74
+ 276              	.LVL19:
+ 277              		.loc 1 65 16 is_stmt 0 view .LVU75
+ 278 0002 0024     		movs	r4, #0
+ 279              		.loc 1 65 5 view .LVU76
+ 280 0004 00E0     		b	.L31
+ 281              	.LVL20:
+ 282              	.L32:
+ 283              		.loc 1 65 46 is_stmt 1 discriminator 2 view .LVU77
+ 284              		.loc 1 65 51 is_stmt 0 discriminator 2 view .LVU78
+ 285 0006 0134     		adds	r4, r4, #1
+ 286              	.LVL21:
+ 287              	.L31:
+ 288              		.loc 1 65 21 is_stmt 1 discriminator 1 view .LVU79
+ 289              		.loc 1 65 5 is_stmt 0 discriminator 1 view .LVU80
+ 290 0008 1F2C     		cmp	r4, #31
+ 291 000a 19DC     		bgt	.L30
+  66:Core/Src/stimer.c ****     {
+  67:Core/Src/stimer.c ****         if ((softTimer[index].callback != NULL) && TIMER_EXPIRED(softTimer[index]))
+ 292              		.loc 1 67 9 is_stmt 1 view .LVU81
+ 293              		.loc 1 67 30 is_stmt 0 view .LVU82
+ 294 000c 0D4B     		ldr	r3, .L36
+ 295 000e 03EB0413 		add	r3, r3, r4, lsl #4
+ 296 0012 9B68     		ldr	r3, [r3, #8]
+ 297              		.loc 1 67 12 view .LVU83
+ 298 0014 002B     		cmp	r3, #0
+ 299 0016 F6D0     		beq	.L32
+ 300              		.loc 1 67 52 discriminator 1 view .LVU84
+ 301 0018 FFF7FEFF 		bl	HAL_GetTick
+ 302              	.LVL22:
+ 303 001c 094A     		ldr	r2, .L36
+ 304 001e 2301     		lsls	r3, r4, #4
+ 305 0020 02EB0411 		add	r1, r2, r4, lsl #4
+ 306 0024 D358     		ldr	r3, [r2, r3]
+ 307 0026 C01A     		subs	r0, r0, r3
+ 308 0028 4B68     		ldr	r3, [r1, #4]
+ 309              		.loc 1 67 49 discriminator 1 view .LVU85
+ 310 002a 9842     		cmp	r0, r3
+ 311 002c EBD3     		bcc	.L32
+  68:Core/Src/stimer.c ****         {
+  69:Core/Src/stimer.c ****             callback = softTimer[index].callback;
+ 312              		.loc 1 69 13 is_stmt 1 view .LVU86
+ 313              		.loc 1 69 40 is_stmt 0 view .LVU87
+ 314 002e 8B68     		ldr	r3, [r1, #8]
+ 315              		.loc 1 69 22 view .LVU88
+ 316 0030 054A     		ldr	r2, .L36+4
+ 317 0032 1360     		str	r3, [r2]
+  70:Core/Src/stimer.c ****             param = softTimer[index].params;
+ 318              		.loc 1 70 13 is_stmt 1 view .LVU89
+ 319              		.loc 1 70 37 is_stmt 0 view .LVU90
+ 320 0034 C868     		ldr	r0, [r1, #12]
+ 321              		.loc 1 70 19 view .LVU91
+ 322 0036 054A     		ldr	r2, .L36+8
+ 323 0038 1060     		str	r0, [r2]
+  71:Core/Src/stimer.c ****             softTimer[index].callback = NULL;
+ 324              		.loc 1 71 13 is_stmt 1 view .LVU92
+ 325              		.loc 1 71 39 is_stmt 0 view .LVU93
+ARM GAS  C:\Users\dung\AppData\Local\Temp\ccd31KkB.s 			page 8
+
+
+ 326 003a 0022     		movs	r2, #0
+ 327 003c 8A60     		str	r2, [r1, #8]
+  72:Core/Src/stimer.c ****             callback(param);
+ 328              		.loc 1 72 13 is_stmt 1 view .LVU94
+ 329 003e 9847     		blx	r3
+ 330              	.LVL23:
+  73:Core/Src/stimer.c ****             break;
+ 331              		.loc 1 73 13 view .LVU95
+ 332              	.L30:
+  74:Core/Src/stimer.c ****         }
+  75:Core/Src/stimer.c ****     }
+  76:Core/Src/stimer.c **** }...
+ 333              		.loc 1 76 1 is_stmt 0 view .LVU96
+ 334 0040 10BD     		pop	{r4, pc}
+ 335              	.LVL24:
+ 336              	.L37:
+ 337              		.loc 1 76 1 view .LVU97
+ 338 0042 00BF     		.align	2
+ 339              	.L36:
+ 340 0044 00000000 		.word	.LANCHOR0
+ 341 0048 00000000 		.word	.LANCHOR1
+ 342 004c 00000000 		.word	.LANCHOR2
+ 343              		.cfi_endproc
+ 344              	.LFE68:
+ 346              		.section	.bss.callback.1,"aw",%nobits
+ 347              		.align	2
+ 348              		.set	.LANCHOR1,. + 0
+ 351              	callback.1:
+ 352 0000 00000000 		.space	4
+ 353              		.section	.bss.param.0,"aw",%nobits
+ 354              		.align	2
+ 355              		.set	.LANCHOR2,. + 0
+ 358              	param.0:
+ 359 0000 00000000 		.space	4
+ 360              		.section	.bss.softTimer,"aw",%nobits
+ 361              		.align	2
+ 362              		.set	.LANCHOR0,. + 0
+ 365              	softTimer:
+ 366 0000 00000000 		.space	512
+ 366      00000000 
+ 366      00000000 
+ 366      00000000 
+ 366      00000000 
+ 367              		.text
+ 368              	.Letext0:
+ 369              		.file 2 "c:\\program files (x86)\\gcc-arm-none-eabi-10.3-2021.10-win32\\gcc-arm-none-eabi-10.3-202
+ 370              		.file 3 "c:\\program files (x86)\\gcc-arm-none-eabi-10.3-2021.10-win32\\gcc-arm-none-eabi-10.3-202
+ 371              		.file 4 "Core/Inc/stimer.h"
+ 372              		.file 5 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h"
+ARM GAS  C:\Users\dung\AppData\Local\Temp\ccd31KkB.s 			page 9
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 stimer.c
+C:\Users\dung\AppData\Local\Temp\ccd31KkB.s:18     .text.startTimer:00000000 $t
+C:\Users\dung\AppData\Local\Temp\ccd31KkB.s:24     .text.startTimer:00000000 startTimer
+C:\Users\dung\AppData\Local\Temp\ccd31KkB.s:130    .text.startTimer:00000058 $d
+C:\Users\dung\AppData\Local\Temp\ccd31KkB.s:135    .text.cancelTimer:00000000 $t
+C:\Users\dung\AppData\Local\Temp\ccd31KkB.s:141    .text.cancelTimer:00000000 cancelTimer
+C:\Users\dung\AppData\Local\Temp\ccd31KkB.s:191    .text.cancelTimer:00000024 $d
+C:\Users\dung\AppData\Local\Temp\ccd31KkB.s:196    .text.isTimerRunning:00000000 $t
+C:\Users\dung\AppData\Local\Temp\ccd31KkB.s:202    .text.isTimerRunning:00000000 isTimerRunning
+C:\Users\dung\AppData\Local\Temp\ccd31KkB.s:250    .text.isTimerRunning:00000020 $d
+C:\Users\dung\AppData\Local\Temp\ccd31KkB.s:255    .text.processTimerEvents:00000000 $t
+C:\Users\dung\AppData\Local\Temp\ccd31KkB.s:261    .text.processTimerEvents:00000000 processTimerEvents
+C:\Users\dung\AppData\Local\Temp\ccd31KkB.s:340    .text.processTimerEvents:00000044 $d
+C:\Users\dung\AppData\Local\Temp\ccd31KkB.s:347    .bss.callback.1:00000000 $d
+C:\Users\dung\AppData\Local\Temp\ccd31KkB.s:351    .bss.callback.1:00000000 callback.1
+C:\Users\dung\AppData\Local\Temp\ccd31KkB.s:354    .bss.param.0:00000000 $d
+C:\Users\dung\AppData\Local\Temp\ccd31KkB.s:358    .bss.param.0:00000000 param.0
+C:\Users\dung\AppData\Local\Temp\ccd31KkB.s:361    .bss.softTimer:00000000 $d
+C:\Users\dung\AppData\Local\Temp\ccd31KkB.s:365    .bss.softTimer:00000000 softTimer
+
+UNDEFINED SYMBOLS
+HAL_GetTick

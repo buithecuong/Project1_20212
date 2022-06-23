@@ -1,0 +1,3 @@
+viết hàm đợi module sim nhận sim, kết nối gprs
+viết hàm check gsm, gprs
+viết hàm cho nút nhấn

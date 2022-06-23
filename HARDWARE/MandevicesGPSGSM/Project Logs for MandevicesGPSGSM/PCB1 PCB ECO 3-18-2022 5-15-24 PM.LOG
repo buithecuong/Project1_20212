@@ -1,0 +1,3 @@
+Change Component Footprint: Designator=C6 Old Footprint=CAP_0402 New Footprint=CAP_0805
+Change Room Name: Old Name=Designator_1 New Name=Designator
+Added Room: Name=Designator

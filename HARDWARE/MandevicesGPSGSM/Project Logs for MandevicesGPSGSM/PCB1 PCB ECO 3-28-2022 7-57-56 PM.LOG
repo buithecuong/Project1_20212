@@ -1,0 +1,26 @@
+Change Component Designator: OldDesignator=R4 NewDesignator=R5
+Change Component Designator: OldDesignator=R5 NewDesignator=R4
+Change Component Designator: OldDesignator=U1 NewDesignator=U2
+Change Component Designator: OldDesignator=U2 NewDesignator=U1
+Change Component Description : Designator=L1 Old Description=C?m New Description=C?m
+Change component parameters: Designator = "Q1" ("Q1"); Footprint = "SOT23D"; UniqueID = "\WYVLEZWB\XBVGYSES" ("\WYVLEZWB\XBVGYSES")
+Change component parameters (AddParameter): Name = "Value"; Value = "C1815"; VariantName = "[No Variations]"
+Change component parameters: Designator = "Q2" ("Q2"); Footprint = "SOT23D"; UniqueID = "\WYVLEZWB\JRESOCLS" ("\WYVLEZWB\JRESOCLS")
+Change component parameters (AddParameter): Name = "Value"; Value = "C1815"; VariantName = "[No Variations]"
+Change component parameters: Designator = "Q3" ("Q3"); Footprint = "SOT23D"; UniqueID = "\WYVLEZWB\YKCJSDDX" ("\WYVLEZWB\YKCJSDDX")
+Change component parameters (AddParameter): Name = "Value"; Value = "C1815"; VariantName = "[No Variations]"
+Change component parameters: Designator = "Q4" ("Q4"); Footprint = "SOT23D"; UniqueID = "\WYVLEZWB\EGZRJXEQ" ("\WYVLEZWB\EGZRJXEQ")
+Change component parameters (AddParameter): Name = "Value"; Value = "C1815"; VariantName = "[No Variations]"
+Change component parameters: Designator = "Q5" ("Q5"); Footprint = "SOT23D"; UniqueID = "\ZOBQRMZC\ZZYYBPHT" ("\ZOBQRMZC\ZZYYBPHT")
+Change component parameters (AddParameter): Name = "Value"; Value = "C1815"; VariantName = "[No Variations]"
+Change component parameters: Designator = "L1" ("L1"); Footprint = "LED-3MM 2 MAU"; UniqueID = "\GFJTCEMT\PVCOQYWG" ("\GFJTCEMT\PVCOQYWG")
+Change component parameters (AddParameter): Name = "Chung_Loai"; Value = "C?m"; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "Don_Vi"; Value = "Con"; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "Ghi_Chu"; Value = ""; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "Kieu_Chan"; Value = ""; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "Ma_Hang"; Value = "MH005371"; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "Ten_Linh_Kien"; Value = "Led 3MM 2 M?u Anot Sáng Ð?c (5c)"; VariantName = "[No Variations]"
+Change Net Name : Old Net Name=NetR4_2 New Net Name=NetR5_2
+Change Net Name : Old Net Name=NetR5_1 New Net Name=NetR4_1
+Change Net Name : Old Net Name=NetU2_1 New Net Name=NetU1_1
+Change Net Name : Old Net Name=NetU2_3 New Net Name=NetU1_3

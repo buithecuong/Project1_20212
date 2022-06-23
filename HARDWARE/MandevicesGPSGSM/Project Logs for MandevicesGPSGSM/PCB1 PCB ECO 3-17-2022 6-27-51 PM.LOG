@@ -1,0 +1,87 @@
+Removed Pin From Net: NetName=GND Pin=C7-1
+Removed Pin From Net: NetName=GND Pin=C8-1
+Change Component Footprint: Designator=C6 Old Footprint=CAP_0805 New Footprint=CAP_0402
+Change Component Footprint: Designator=U4 Old Footprint=SO16 New Footprint=SO016
+Change Component Comment : Designator=U4 Old Comment=CH340G New Comment=CH340C
+Change Component Designator: OldDesignator=C9 NewDesignator=C7
+Change Component Designator: OldDesignator=C10 NewDesignator=C8
+Change Component Designator: OldDesignator=C11 NewDesignator=C9
+Change Component Designator: OldDesignator=C12 NewDesignator=C10
+Change Component Designator: OldDesignator=C13 NewDesignator=C11
+Change Component Designator: OldDesignator=C14 NewDesignator=C12
+Change Component Designator: OldDesignator=C15 NewDesignator=C13
+Change Component Designator: OldDesignator=C16 NewDesignator=C14
+Change Component Designator: OldDesignator=C17 NewDesignator=C15
+Change Component Designator: OldDesignator=C18 NewDesignator=C16
+Change Component Designator: OldDesignator=C19 NewDesignator=C17
+Change Component Designator: OldDesignator=C20 NewDesignator=C18
+Change Component Designator: OldDesignator=C21 NewDesignator=C19
+Change Component Designator: OldDesignator=C22 NewDesignator=C20
+Change Component Designator: OldDesignator=C23 NewDesignator=C21
+Change Component Designator: OldDesignator=C24 NewDesignator=C22
+Change Component Designator: OldDesignator=C25 NewDesignator=C23
+Change Component Designator: OldDesignator=C26 NewDesignator=C24
+Change Component Designator: OldDesignator=C27 NewDesignator=C25
+Change Component Designator: OldDesignator=C28 NewDesignator=C26
+Change Component Designator: OldDesignator=C29 NewDesignator=C27
+Change Component Designator: OldDesignator=C30 NewDesignator=C28
+Change Component Designator: OldDesignator=C31 NewDesignator=C29
+Change Component Designator: OldDesignator=R29 NewDesignator=R31
+Change Component Designator: OldDesignator=R30 NewDesignator=R32
+Change Component Designator: OldDesignator=R31 NewDesignator=R33
+Change Component Designator: OldDesignator=R32 NewDesignator=R34
+Change Component Designator: OldDesignator=R33 NewDesignator=R35
+Change Component Designator: OldDesignator=R34 NewDesignator=R36
+Change Component Designator: OldDesignator=R35 NewDesignator=R37
+Change Component Designator: OldDesignator=R36 NewDesignator=R38
+Change Component Designator: OldDesignator=R37 NewDesignator=R39
+Change Component Designator: OldDesignator=R38 NewDesignator=R40
+Change Component Designator: OldDesignator=Y2 NewDesignator=Y1
+Change component parameters: Designator = "U4" ("U4"); Footprint = "SO16"; UniqueID = "\GFJTCEMT\PYGBYNYS" ("\GFJTCEMT\PYGBYNYS")
+Change component parameters (AddParameter): Name = "Availability"; Value = "Unavailable"; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "Check_prices"; Value = "https://www.snapeda.com/parts/CH340C/WCH/view-part/5428851/?ref=eda"; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "MF"; Value = "WCH"; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "MP"; Value = "CH340C"; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "Package"; Value = "Package"; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "Price"; Value = "None"; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "SnapEDA_Link"; Value = "https://www.snapeda.com/parts/CH340C/WCH/view-part/5428851/?ref=snap"; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "Value"; Value = ""; VariantName = "[No Variations]"
+Added Component: Designator=LS1(SPEAKER)
+Add component (AddParameter): Name = "LatestRevisionDate"; Value = "17-Jul-2002"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "LatestRevisionNote"; Value = "Re-released for DXP Platform."; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "PackageReference"; Value = "PIN2"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Published"; Value = "24-Mar-1999"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Publisher"; Value = "Altium Limited"; VariantName = "[No Variations]"
+Added Component: Designator=Q5(SOT23D)
+Add component (AddParameter): Name = "Value"; Value = "C1815"; VariantName = "[No Variations]"
+Added Component: Designator=R29(RES-SMD-0805)
+Add component (AddParameter): Name = "Class"; Value = "Passive"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer"; Value = "Generic Components"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Published"; Value = "08/06/2000"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Publisher"; Value = "Altium Hobart Technology Centre"; VariantName = "[No Variations]"
+Added Component: Designator=R30(RES-SMD-0805)
+Add component (AddParameter): Name = "Class"; Value = "Passive"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer"; Value = "Generic Components"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Published"; Value = "08/06/2000"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Publisher"; Value = "Altium Hobart Technology Centre"; VariantName = "[No Variations]"
+Added Pin To Net: NetName=3V3 Pin=LS1-1
+Added Pin To Net: NetName=GND Pin=Q5-2
+Added Pin To Net: NetName=GND Pin=R30-2
+Change Net Name : Old Net Name=NetC13_1 New Net Name=NetC11_1
+Change Net Name : Old Net Name=NetC14_1 New Net Name=NetC12_1
+Added Pin To Net: NetName=BUZZER Pin=R29-1
+Added Pin To Net: NetName=BUZZER Pin=U8-28
+Added Net: Name=BUZZER
+Added Pin To Net: NetName=NetLS1_2 Pin=LS1-2
+Added Pin To Net: NetName=NetLS1_2 Pin=Q5-3
+Added Net: Name=NetLS1_2
+Added Pin To Net: NetName=NetQ5_1 Pin=Q5-1
+Added Pin To Net: NetName=NetQ5_1 Pin=R29-2
+Added Pin To Net: NetName=NetQ5_1 Pin=R30-1
+Added Net: Name=NetQ5_1
+Added Member To Class: ClassName=Designator Member=Component LS1 Speaker
+Added Member To Class: ClassName=Designator Member=Component Q5 C1815
+Added Member To Class: ClassName=Designator Member=Component R39 1k
+Added Member To Class: ClassName=Designator Member=Component R40 1k
+Change Room Name: Old Name=Designator_2 New Name=Designator
+Added Room: Name=Designator

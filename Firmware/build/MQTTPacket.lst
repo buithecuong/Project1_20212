@@ -1,0 +1,2192 @@
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 1
+
+
+   1              		.cpu cortex-m3
+   2              		.arch armv7-m
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"MQTTPacket.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.bufchar,"ax",%progbits
+  18              		.align	1
+  19              		.global	bufchar
+  20              		.syntax unified
+  21              		.thumb
+  22              		.thumb_func
+  24              	bufchar:
+  25              	.LVL0:
+  26              	.LFB6:
+  27              		.file 1 "Core/Src/MQTTPacket.c"
+   1:Core/Src/MQTTPacket.c **** /*******************************************************************************
+   2:Core/Src/MQTTPacket.c ****  * Copyright (c) 2014 IBM Corp.
+   3:Core/Src/MQTTPacket.c ****  *
+   4:Core/Src/MQTTPacket.c ****  * All rights reserved. This program and the accompanying materials
+   5:Core/Src/MQTTPacket.c ****  * are made available under the terms of the Eclipse Public License v1.0
+   6:Core/Src/MQTTPacket.c ****  * and Eclipse Distribution License v1.0 which accompany this distribution.
+   7:Core/Src/MQTTPacket.c ****  *
+   8:Core/Src/MQTTPacket.c ****  * The Eclipse Public License is available at
+   9:Core/Src/MQTTPacket.c ****  *    http://www.eclipse.org/legal/epl-v10.html
+  10:Core/Src/MQTTPacket.c ****  * and the Eclipse Distribution License is available at
+  11:Core/Src/MQTTPacket.c ****  *   http://www.eclipse.org/org/documents/edl-v10.php.
+  12:Core/Src/MQTTPacket.c ****  *
+  13:Core/Src/MQTTPacket.c ****  * Contributors:
+  14:Core/Src/MQTTPacket.c ****  *    Ian Craggs - initial API and implementation and/or initial documentation
+  15:Core/Src/MQTTPacket.c ****  *    Sergio R. Caprile - non-blocking packet read functions for stream transport
+  16:Core/Src/MQTTPacket.c ****  *******************************************************************************/
+  17:Core/Src/MQTTPacket.c **** 
+  18:Core/Src/MQTTPacket.c **** #include "StackTrace.h"
+  19:Core/Src/MQTTPacket.c **** #include "MQTTPacket.h"
+  20:Core/Src/MQTTPacket.c **** 
+  21:Core/Src/MQTTPacket.c **** #include <string.h>
+  22:Core/Src/MQTTPacket.c **** 
+  23:Core/Src/MQTTPacket.c **** /**
+  24:Core/Src/MQTTPacket.c ****  * Encodes the message length according to the MQTT algorithm
+  25:Core/Src/MQTTPacket.c ****  * @param buf the buffer into which the encoded data is written
+  26:Core/Src/MQTTPacket.c ****  * @param length the length to be encoded
+  27:Core/Src/MQTTPacket.c ****  * @return the number of bytes written to buffer
+  28:Core/Src/MQTTPacket.c ****  */
+  29:Core/Src/MQTTPacket.c **** int MQTTPacket_encode(unsigned char* buf, int length)
+  30:Core/Src/MQTTPacket.c **** {
+  31:Core/Src/MQTTPacket.c **** 	int rc = 0;
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 2
+
+
+  32:Core/Src/MQTTPacket.c **** 
+  33:Core/Src/MQTTPacket.c **** 	FUNC_ENTRY;
+  34:Core/Src/MQTTPacket.c **** 	do
+  35:Core/Src/MQTTPacket.c **** 	{
+  36:Core/Src/MQTTPacket.c **** 		char d = length % 128;
+  37:Core/Src/MQTTPacket.c **** 		length /= 128;
+  38:Core/Src/MQTTPacket.c **** 		/* if there are more digits to encode, set the top bit of this digit */
+  39:Core/Src/MQTTPacket.c **** 		if (length > 0)
+  40:Core/Src/MQTTPacket.c **** 			d |= 0x80;
+  41:Core/Src/MQTTPacket.c **** 		buf[rc++] = d;
+  42:Core/Src/MQTTPacket.c **** 	} while (length > 0);
+  43:Core/Src/MQTTPacket.c **** 	FUNC_EXIT_RC(rc);
+  44:Core/Src/MQTTPacket.c **** 	return rc;
+  45:Core/Src/MQTTPacket.c **** }
+  46:Core/Src/MQTTPacket.c **** 
+  47:Core/Src/MQTTPacket.c **** 
+  48:Core/Src/MQTTPacket.c **** /**
+  49:Core/Src/MQTTPacket.c ****  * Decodes the message length according to the MQTT algorithm
+  50:Core/Src/MQTTPacket.c ****  * @param getcharfn pointer to function to read the next character from the data source
+  51:Core/Src/MQTTPacket.c ****  * @param value the decoded length returned
+  52:Core/Src/MQTTPacket.c ****  * @return the number of bytes read from the socket
+  53:Core/Src/MQTTPacket.c ****  */
+  54:Core/Src/MQTTPacket.c **** int MQTTPacket_decode(int (*getcharfn)(unsigned char*, int), int* value)
+  55:Core/Src/MQTTPacket.c **** {
+  56:Core/Src/MQTTPacket.c **** 	unsigned char c;
+  57:Core/Src/MQTTPacket.c **** 	int multiplier = 1;
+  58:Core/Src/MQTTPacket.c **** 	int len = 0;
+  59:Core/Src/MQTTPacket.c **** #define MAX_NO_OF_REMAINING_LENGTH_BYTES 4
+  60:Core/Src/MQTTPacket.c **** 
+  61:Core/Src/MQTTPacket.c **** 	FUNC_ENTRY;
+  62:Core/Src/MQTTPacket.c **** 	*value = 0;
+  63:Core/Src/MQTTPacket.c **** 	do
+  64:Core/Src/MQTTPacket.c **** 	{
+  65:Core/Src/MQTTPacket.c **** 		int rc = MQTTPACKET_READ_ERROR;
+  66:Core/Src/MQTTPacket.c **** 
+  67:Core/Src/MQTTPacket.c **** 		if (++len > MAX_NO_OF_REMAINING_LENGTH_BYTES)
+  68:Core/Src/MQTTPacket.c **** 		{
+  69:Core/Src/MQTTPacket.c **** 			rc = MQTTPACKET_READ_ERROR;	/* bad data */
+  70:Core/Src/MQTTPacket.c **** 			goto exit;
+  71:Core/Src/MQTTPacket.c **** 		}
+  72:Core/Src/MQTTPacket.c **** 		rc = (*getcharfn)(&c, 1);
+  73:Core/Src/MQTTPacket.c **** 		if (rc != 1)
+  74:Core/Src/MQTTPacket.c **** 			goto exit;
+  75:Core/Src/MQTTPacket.c **** 		*value += (c & 127) * multiplier;
+  76:Core/Src/MQTTPacket.c **** 		multiplier *= 128;
+  77:Core/Src/MQTTPacket.c **** 	} while ((c & 128) != 0);
+  78:Core/Src/MQTTPacket.c **** exit:
+  79:Core/Src/MQTTPacket.c **** 	FUNC_EXIT_RC(len);
+  80:Core/Src/MQTTPacket.c **** 	return len;
+  81:Core/Src/MQTTPacket.c **** }
+  82:Core/Src/MQTTPacket.c **** 
+  83:Core/Src/MQTTPacket.c **** 
+  84:Core/Src/MQTTPacket.c **** int MQTTPacket_len(int rem_len)
+  85:Core/Src/MQTTPacket.c **** {
+  86:Core/Src/MQTTPacket.c **** 	rem_len += 1; /* header byte */
+  87:Core/Src/MQTTPacket.c **** 
+  88:Core/Src/MQTTPacket.c **** 	/* now remaining_length field */
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 3
+
+
+  89:Core/Src/MQTTPacket.c **** 	if (rem_len < 128)
+  90:Core/Src/MQTTPacket.c **** 		rem_len += 1;
+  91:Core/Src/MQTTPacket.c **** 	else if (rem_len < 16384)
+  92:Core/Src/MQTTPacket.c **** 		rem_len += 2;
+  93:Core/Src/MQTTPacket.c **** 	else if (rem_len < 2097151)
+  94:Core/Src/MQTTPacket.c **** 		rem_len += 3;
+  95:Core/Src/MQTTPacket.c **** 	else
+  96:Core/Src/MQTTPacket.c **** 		rem_len += 4;
+  97:Core/Src/MQTTPacket.c **** 	return rem_len;
+  98:Core/Src/MQTTPacket.c **** }
+  99:Core/Src/MQTTPacket.c **** 
+ 100:Core/Src/MQTTPacket.c **** 
+ 101:Core/Src/MQTTPacket.c **** static unsigned char* bufptr;
+ 102:Core/Src/MQTTPacket.c **** 
+ 103:Core/Src/MQTTPacket.c **** int bufchar(unsigned char* c, int count)
+ 104:Core/Src/MQTTPacket.c **** {
+  28              		.loc 1 104 1 view -0
+  29              		.cfi_startproc
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32              		@ link register save eliminated.
+  33              		.loc 1 104 1 is_stmt 0 view .LVU1
+  34 0000 8446     		mov	ip, r0
+  35 0002 0846     		mov	r0, r1
+  36              	.LVL1:
+ 105:Core/Src/MQTTPacket.c **** 	int i;
+  37              		.loc 1 105 2 is_stmt 1 view .LVU2
+ 106:Core/Src/MQTTPacket.c **** 
+ 107:Core/Src/MQTTPacket.c **** 	for (i = 0; i < count; ++i)
+  38              		.loc 1 107 2 view .LVU3
+  39              		.loc 1 107 9 is_stmt 0 view .LVU4
+  40 0004 0023     		movs	r3, #0
+  41              	.LVL2:
+  42              		.loc 1 107 14 is_stmt 1 view .LVU5
+  43              		.loc 1 107 2 is_stmt 0 view .LVU6
+  44 0006 8B42     		cmp	r3, r1
+  45 0008 0CDA     		bge	.L8
+ 104:Core/Src/MQTTPacket.c **** 	int i;
+  46              		.loc 1 104 1 view .LVU7
+  47 000a 30B4     		push	{r4, r5}
+  48              	.LCFI0:
+  49              		.cfi_def_cfa_offset 8
+  50              		.cfi_offset 4, -8
+  51              		.cfi_offset 5, -4
+  52              	.L3:
+ 108:Core/Src/MQTTPacket.c **** 		*c = *bufptr++;
+  53              		.loc 1 108 3 is_stmt 1 discriminator 3 view .LVU8
+  54              		.loc 1 108 15 is_stmt 0 discriminator 3 view .LVU9
+  55 000c 064C     		ldr	r4, .L9
+  56 000e 2268     		ldr	r2, [r4]
+  57 0010 551C     		adds	r5, r2, #1
+  58 0012 2560     		str	r5, [r4]
+  59              		.loc 1 108 8 discriminator 3 view .LVU10
+  60 0014 1278     		ldrb	r2, [r2]	@ zero_extendqisi2
+  61              		.loc 1 108 6 discriminator 3 view .LVU11
+  62 0016 8CF80020 		strb	r2, [ip]
+ 107:Core/Src/MQTTPacket.c **** 		*c = *bufptr++;
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 4
+
+
+  63              		.loc 1 107 25 is_stmt 1 discriminator 3 view .LVU12
+  64 001a 0133     		adds	r3, r3, #1
+  65              	.LVL3:
+ 107:Core/Src/MQTTPacket.c **** 		*c = *bufptr++;
+  66              		.loc 1 107 14 discriminator 3 view .LVU13
+ 107:Core/Src/MQTTPacket.c **** 		*c = *bufptr++;
+  67              		.loc 1 107 2 is_stmt 0 discriminator 3 view .LVU14
+  68 001c 8342     		cmp	r3, r0
+  69 001e F5DB     		blt	.L3
+ 109:Core/Src/MQTTPacket.c **** 	return count;
+  70              		.loc 1 109 2 is_stmt 1 view .LVU15
+ 110:Core/Src/MQTTPacket.c **** }
+  71              		.loc 1 110 1 is_stmt 0 view .LVU16
+  72 0020 30BC     		pop	{r4, r5}
+  73              	.LCFI1:
+  74              		.cfi_restore 5
+  75              		.cfi_restore 4
+  76              		.cfi_def_cfa_offset 0
+  77 0022 7047     		bx	lr
+  78              	.LVL4:
+  79              	.L8:
+  80              		.loc 1 110 1 view .LVU17
+  81 0024 7047     		bx	lr
+  82              	.L10:
+  83 0026 00BF     		.align	2
+  84              	.L9:
+  85 0028 00000000 		.word	.LANCHOR0
+  86              		.cfi_endproc
+  87              	.LFE6:
+  89              		.section	.text.MQTTPacket_decodenb,"ax",%progbits
+  90              		.align	1
+  91              		.syntax unified
+  92              		.thumb
+  93              		.thumb_func
+  95              	MQTTPacket_decodenb:
+  96              	.LVL5:
+  97              	.LFB19:
+ 111:Core/Src/MQTTPacket.c **** 
+ 112:Core/Src/MQTTPacket.c **** 
+ 113:Core/Src/MQTTPacket.c **** int MQTTPacket_decodeBuf(unsigned char* buf, int* value)
+ 114:Core/Src/MQTTPacket.c **** {
+ 115:Core/Src/MQTTPacket.c **** 	bufptr = buf;
+ 116:Core/Src/MQTTPacket.c **** 	return MQTTPacket_decode(bufchar, value);
+ 117:Core/Src/MQTTPacket.c **** }
+ 118:Core/Src/MQTTPacket.c **** 
+ 119:Core/Src/MQTTPacket.c **** 
+ 120:Core/Src/MQTTPacket.c **** /**
+ 121:Core/Src/MQTTPacket.c ****  * Calculates an integer from two bytes read from the input buffer
+ 122:Core/Src/MQTTPacket.c ****  * @param pptr pointer to the input buffer - incremented by the number of bytes used & returned
+ 123:Core/Src/MQTTPacket.c ****  * @return the integer value calculated
+ 124:Core/Src/MQTTPacket.c ****  */
+ 125:Core/Src/MQTTPacket.c **** int readInt(unsigned char** pptr)
+ 126:Core/Src/MQTTPacket.c **** {
+ 127:Core/Src/MQTTPacket.c **** 	unsigned char* ptr = *pptr;
+ 128:Core/Src/MQTTPacket.c **** 	int len = 256*(*ptr) + (*(ptr+1));
+ 129:Core/Src/MQTTPacket.c **** 	*pptr += 2;
+ 130:Core/Src/MQTTPacket.c **** 	return len;
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 5
+
+
+ 131:Core/Src/MQTTPacket.c **** }
+ 132:Core/Src/MQTTPacket.c **** 
+ 133:Core/Src/MQTTPacket.c **** 
+ 134:Core/Src/MQTTPacket.c **** /**
+ 135:Core/Src/MQTTPacket.c ****  * Reads one character from the input buffer.
+ 136:Core/Src/MQTTPacket.c ****  * @param pptr pointer to the input buffer - incremented by the number of bytes used & returned
+ 137:Core/Src/MQTTPacket.c ****  * @return the character read
+ 138:Core/Src/MQTTPacket.c ****  */
+ 139:Core/Src/MQTTPacket.c **** char readChar(unsigned char** pptr)
+ 140:Core/Src/MQTTPacket.c **** {
+ 141:Core/Src/MQTTPacket.c **** 	char c = **pptr;
+ 142:Core/Src/MQTTPacket.c **** 	(*pptr)++;
+ 143:Core/Src/MQTTPacket.c **** 	return c;
+ 144:Core/Src/MQTTPacket.c **** }
+ 145:Core/Src/MQTTPacket.c **** 
+ 146:Core/Src/MQTTPacket.c **** 
+ 147:Core/Src/MQTTPacket.c **** /**
+ 148:Core/Src/MQTTPacket.c ****  * Writes one character to an output buffer.
+ 149:Core/Src/MQTTPacket.c ****  * @param pptr pointer to the output buffer - incremented by the number of bytes used & returned
+ 150:Core/Src/MQTTPacket.c ****  * @param c the character to write
+ 151:Core/Src/MQTTPacket.c ****  */
+ 152:Core/Src/MQTTPacket.c **** void writeChar(unsigned char** pptr, char c)
+ 153:Core/Src/MQTTPacket.c **** {
+ 154:Core/Src/MQTTPacket.c **** 	**pptr = c;
+ 155:Core/Src/MQTTPacket.c **** 	(*pptr)++;
+ 156:Core/Src/MQTTPacket.c **** }
+ 157:Core/Src/MQTTPacket.c **** 
+ 158:Core/Src/MQTTPacket.c **** 
+ 159:Core/Src/MQTTPacket.c **** /**
+ 160:Core/Src/MQTTPacket.c ****  * Writes an integer as 2 bytes to an output buffer.
+ 161:Core/Src/MQTTPacket.c ****  * @param pptr pointer to the output buffer - incremented by the number of bytes used & returned
+ 162:Core/Src/MQTTPacket.c ****  * @param anInt the integer to write
+ 163:Core/Src/MQTTPacket.c ****  */
+ 164:Core/Src/MQTTPacket.c **** void writeInt(unsigned char** pptr, int anInt)
+ 165:Core/Src/MQTTPacket.c **** {
+ 166:Core/Src/MQTTPacket.c **** 	**pptr = (unsigned char)(anInt / 256);
+ 167:Core/Src/MQTTPacket.c **** 	(*pptr)++;
+ 168:Core/Src/MQTTPacket.c **** 	**pptr = (unsigned char)(anInt % 256);
+ 169:Core/Src/MQTTPacket.c **** 	(*pptr)++;
+ 170:Core/Src/MQTTPacket.c **** }
+ 171:Core/Src/MQTTPacket.c **** 
+ 172:Core/Src/MQTTPacket.c **** 
+ 173:Core/Src/MQTTPacket.c **** /**
+ 174:Core/Src/MQTTPacket.c ****  * Writes a "UTF" string to an output buffer.  Converts C string to length-delimited.
+ 175:Core/Src/MQTTPacket.c ****  * @param pptr pointer to the output buffer - incremented by the number of bytes used & returned
+ 176:Core/Src/MQTTPacket.c ****  * @param string the C string to write
+ 177:Core/Src/MQTTPacket.c ****  */
+ 178:Core/Src/MQTTPacket.c **** void writeCString(unsigned char** pptr, const char* string)
+ 179:Core/Src/MQTTPacket.c **** {
+ 180:Core/Src/MQTTPacket.c **** 	int len = strlen(string);
+ 181:Core/Src/MQTTPacket.c **** 	writeInt(pptr, len);
+ 182:Core/Src/MQTTPacket.c **** 	memcpy(*pptr, string, len);
+ 183:Core/Src/MQTTPacket.c **** 	*pptr += len;
+ 184:Core/Src/MQTTPacket.c **** }
+ 185:Core/Src/MQTTPacket.c **** 
+ 186:Core/Src/MQTTPacket.c **** 
+ 187:Core/Src/MQTTPacket.c **** int getLenStringLen(char* ptr)
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 6
+
+
+ 188:Core/Src/MQTTPacket.c **** {
+ 189:Core/Src/MQTTPacket.c **** 	int len = 256*((unsigned char)(*ptr)) + (unsigned char)(*(ptr+1));
+ 190:Core/Src/MQTTPacket.c **** 	return len;
+ 191:Core/Src/MQTTPacket.c **** }
+ 192:Core/Src/MQTTPacket.c **** 
+ 193:Core/Src/MQTTPacket.c **** 
+ 194:Core/Src/MQTTPacket.c **** void writeMQTTString(unsigned char** pptr, MQTTString mqttstring)
+ 195:Core/Src/MQTTPacket.c **** {
+ 196:Core/Src/MQTTPacket.c **** 	if (mqttstring.lenstring.len > 0)
+ 197:Core/Src/MQTTPacket.c **** 	{
+ 198:Core/Src/MQTTPacket.c **** 		writeInt(pptr, mqttstring.lenstring.len);
+ 199:Core/Src/MQTTPacket.c **** 		memcpy(*pptr, mqttstring.lenstring.data, mqttstring.lenstring.len);
+ 200:Core/Src/MQTTPacket.c **** 		*pptr += mqttstring.lenstring.len;
+ 201:Core/Src/MQTTPacket.c **** 	}
+ 202:Core/Src/MQTTPacket.c **** 	else if (mqttstring.cstring)
+ 203:Core/Src/MQTTPacket.c **** 		writeCString(pptr, mqttstring.cstring);
+ 204:Core/Src/MQTTPacket.c **** 	else
+ 205:Core/Src/MQTTPacket.c **** 		writeInt(pptr, 0);
+ 206:Core/Src/MQTTPacket.c **** }
+ 207:Core/Src/MQTTPacket.c **** 
+ 208:Core/Src/MQTTPacket.c **** 
+ 209:Core/Src/MQTTPacket.c **** /**
+ 210:Core/Src/MQTTPacket.c ****  * @param mqttstring the MQTTString structure into which the data is to be read
+ 211:Core/Src/MQTTPacket.c ****  * @param pptr pointer to the output buffer - incremented by the number of bytes used & returned
+ 212:Core/Src/MQTTPacket.c ****  * @param enddata pointer to the end of the data: do not read beyond
+ 213:Core/Src/MQTTPacket.c ****  * @return 1 if successful, 0 if not
+ 214:Core/Src/MQTTPacket.c ****  */
+ 215:Core/Src/MQTTPacket.c **** int readMQTTLenString(MQTTString* mqttstring, unsigned char** pptr, unsigned char* enddata)
+ 216:Core/Src/MQTTPacket.c **** {
+ 217:Core/Src/MQTTPacket.c **** 	int rc = 0;
+ 218:Core/Src/MQTTPacket.c **** 
+ 219:Core/Src/MQTTPacket.c **** 	FUNC_ENTRY;
+ 220:Core/Src/MQTTPacket.c **** 	/* the first two bytes are the length of the string */
+ 221:Core/Src/MQTTPacket.c **** 	if (enddata - (*pptr) > 1) /* enough length to read the integer? */
+ 222:Core/Src/MQTTPacket.c **** 	{
+ 223:Core/Src/MQTTPacket.c **** 		mqttstring->lenstring.len = readInt(pptr); /* increments pptr to point past length */
+ 224:Core/Src/MQTTPacket.c **** 		if (&(*pptr)[mqttstring->lenstring.len] <= enddata)
+ 225:Core/Src/MQTTPacket.c **** 		{
+ 226:Core/Src/MQTTPacket.c **** 			mqttstring->lenstring.data = (char*)*pptr;
+ 227:Core/Src/MQTTPacket.c **** 			*pptr += mqttstring->lenstring.len;
+ 228:Core/Src/MQTTPacket.c **** 			rc = 1;
+ 229:Core/Src/MQTTPacket.c **** 		}
+ 230:Core/Src/MQTTPacket.c **** 	}
+ 231:Core/Src/MQTTPacket.c **** 	mqttstring->cstring = NULL;
+ 232:Core/Src/MQTTPacket.c **** 	FUNC_EXIT_RC(rc);
+ 233:Core/Src/MQTTPacket.c **** 	return rc;
+ 234:Core/Src/MQTTPacket.c **** }
+ 235:Core/Src/MQTTPacket.c **** 
+ 236:Core/Src/MQTTPacket.c **** 
+ 237:Core/Src/MQTTPacket.c **** /**
+ 238:Core/Src/MQTTPacket.c ****  * Return the length of the MQTTstring - C string if there is one, otherwise the length delimited s
+ 239:Core/Src/MQTTPacket.c ****  * @param mqttstring the string to return the length of
+ 240:Core/Src/MQTTPacket.c ****  * @return the length of the string
+ 241:Core/Src/MQTTPacket.c ****  */
+ 242:Core/Src/MQTTPacket.c **** int MQTTstrlen(MQTTString mqttstring)
+ 243:Core/Src/MQTTPacket.c **** {
+ 244:Core/Src/MQTTPacket.c **** 	int rc = 0;
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 7
+
+
+ 245:Core/Src/MQTTPacket.c **** 
+ 246:Core/Src/MQTTPacket.c **** 	if (mqttstring.cstring)
+ 247:Core/Src/MQTTPacket.c **** 		rc = strlen(mqttstring.cstring);
+ 248:Core/Src/MQTTPacket.c **** 	else
+ 249:Core/Src/MQTTPacket.c **** 		rc = mqttstring.lenstring.len;
+ 250:Core/Src/MQTTPacket.c **** 	return rc;
+ 251:Core/Src/MQTTPacket.c **** }
+ 252:Core/Src/MQTTPacket.c **** 
+ 253:Core/Src/MQTTPacket.c **** 
+ 254:Core/Src/MQTTPacket.c **** /**
+ 255:Core/Src/MQTTPacket.c ****  * Compares an MQTTString to a C string
+ 256:Core/Src/MQTTPacket.c ****  * @param a the MQTTString to compare
+ 257:Core/Src/MQTTPacket.c ****  * @param bptr the C string to compare
+ 258:Core/Src/MQTTPacket.c ****  * @return boolean - equal or not
+ 259:Core/Src/MQTTPacket.c ****  */
+ 260:Core/Src/MQTTPacket.c **** int MQTTPacket_equals(MQTTString* a, char* bptr)
+ 261:Core/Src/MQTTPacket.c **** {
+ 262:Core/Src/MQTTPacket.c **** 	int alen = 0,
+ 263:Core/Src/MQTTPacket.c **** 		blen = 0;
+ 264:Core/Src/MQTTPacket.c **** 	char *aptr;
+ 265:Core/Src/MQTTPacket.c **** 	
+ 266:Core/Src/MQTTPacket.c **** 	if (a->cstring)
+ 267:Core/Src/MQTTPacket.c **** 	{
+ 268:Core/Src/MQTTPacket.c **** 		aptr = a->cstring;
+ 269:Core/Src/MQTTPacket.c **** 		alen = strlen(a->cstring);
+ 270:Core/Src/MQTTPacket.c **** 	}
+ 271:Core/Src/MQTTPacket.c **** 	else
+ 272:Core/Src/MQTTPacket.c **** 	{
+ 273:Core/Src/MQTTPacket.c **** 		aptr = a->lenstring.data;
+ 274:Core/Src/MQTTPacket.c **** 		alen = a->lenstring.len;
+ 275:Core/Src/MQTTPacket.c **** 	}
+ 276:Core/Src/MQTTPacket.c **** 	blen = strlen(bptr);
+ 277:Core/Src/MQTTPacket.c **** 	
+ 278:Core/Src/MQTTPacket.c **** 	return (alen == blen) && (strncmp(aptr, bptr, alen) == 0);
+ 279:Core/Src/MQTTPacket.c **** }
+ 280:Core/Src/MQTTPacket.c **** 
+ 281:Core/Src/MQTTPacket.c **** 
+ 282:Core/Src/MQTTPacket.c **** /**
+ 283:Core/Src/MQTTPacket.c ****  * Helper function to read packet data from some source into a buffer
+ 284:Core/Src/MQTTPacket.c ****  * @param buf the buffer into which the packet will be serialized
+ 285:Core/Src/MQTTPacket.c ****  * @param buflen the length in bytes of the supplied buffer
+ 286:Core/Src/MQTTPacket.c ****  * @param getfn pointer to a function which will read any number of bytes from the needed source
+ 287:Core/Src/MQTTPacket.c ****  * @return integer MQTT packet type, or -1 on error
+ 288:Core/Src/MQTTPacket.c ****  * @note  the whole message must fit into the caller's buffer
+ 289:Core/Src/MQTTPacket.c ****  */
+ 290:Core/Src/MQTTPacket.c **** int MQTTPacket_read(unsigned char* buf, int buflen, int (*getfn)(unsigned char*, int))
+ 291:Core/Src/MQTTPacket.c **** {
+ 292:Core/Src/MQTTPacket.c **** 	int rc = -1;
+ 293:Core/Src/MQTTPacket.c **** 	MQTTHeader header = {0};
+ 294:Core/Src/MQTTPacket.c **** 	int len = 0;
+ 295:Core/Src/MQTTPacket.c **** 	int rem_len = 0;
+ 296:Core/Src/MQTTPacket.c **** 
+ 297:Core/Src/MQTTPacket.c **** 	/* 1. read the header byte.  This has the packet type in it */
+ 298:Core/Src/MQTTPacket.c **** 	if ((*getfn)(buf, 1) != 1)
+ 299:Core/Src/MQTTPacket.c **** 		goto exit;
+ 300:Core/Src/MQTTPacket.c **** 
+ 301:Core/Src/MQTTPacket.c **** 	len = 1;
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 8
+
+
+ 302:Core/Src/MQTTPacket.c **** 	/* 2. read the remaining length.  This is variable in itself */
+ 303:Core/Src/MQTTPacket.c **** 	MQTTPacket_decode(getfn, &rem_len);
+ 304:Core/Src/MQTTPacket.c **** 	len += MQTTPacket_encode(buf + 1, rem_len); /* put the original remaining length back into the buf
+ 305:Core/Src/MQTTPacket.c **** 
+ 306:Core/Src/MQTTPacket.c **** 	/* 3. read the rest of the buffer using a callback to supply the rest of the data */
+ 307:Core/Src/MQTTPacket.c **** 	if((rem_len + len) > buflen)
+ 308:Core/Src/MQTTPacket.c **** 		goto exit;
+ 309:Core/Src/MQTTPacket.c **** 	if (rem_len && ((*getfn)(buf + len, rem_len) != rem_len))
+ 310:Core/Src/MQTTPacket.c **** 		goto exit;
+ 311:Core/Src/MQTTPacket.c **** 
+ 312:Core/Src/MQTTPacket.c **** 	header.byte = buf[0];
+ 313:Core/Src/MQTTPacket.c **** 	rc = header.bits.type;
+ 314:Core/Src/MQTTPacket.c **** exit:
+ 315:Core/Src/MQTTPacket.c **** 	return rc;
+ 316:Core/Src/MQTTPacket.c **** }
+ 317:Core/Src/MQTTPacket.c **** 
+ 318:Core/Src/MQTTPacket.c **** /**
+ 319:Core/Src/MQTTPacket.c ****  * Decodes the message length according to the MQTT algorithm, non-blocking
+ 320:Core/Src/MQTTPacket.c ****  * @param trp pointer to a transport structure holding what is needed to solve getting data from it
+ 321:Core/Src/MQTTPacket.c ****  * @param value the decoded length returned
+ 322:Core/Src/MQTTPacket.c ****  * @return integer the number of bytes read from the socket, 0 for call again, or -1 on error
+ 323:Core/Src/MQTTPacket.c ****  */
+ 324:Core/Src/MQTTPacket.c **** static int MQTTPacket_decodenb(MQTTTransport *trp)
+ 325:Core/Src/MQTTPacket.c **** {
+  98              		.loc 1 325 1 is_stmt 1 view -0
+  99              		.cfi_startproc
+ 100              		@ args = 0, pretend = 0, frame = 8
+ 101              		@ frame_needed = 0, uses_anonymous_args = 0
+ 102              		.loc 1 325 1 is_stmt 0 view .LVU19
+ 103 0000 10B5     		push	{r4, lr}
+ 104              	.LCFI2:
+ 105              		.cfi_def_cfa_offset 8
+ 106              		.cfi_offset 4, -8
+ 107              		.cfi_offset 14, -4
+ 108 0002 82B0     		sub	sp, sp, #8
+ 109              	.LCFI3:
+ 110              		.cfi_def_cfa_offset 16
+ 111 0004 0446     		mov	r4, r0
+ 326:Core/Src/MQTTPacket.c **** 	unsigned char c;
+ 112              		.loc 1 326 2 is_stmt 1 view .LVU20
+ 327:Core/Src/MQTTPacket.c **** 	int rc = MQTTPACKET_READ_ERROR;
+ 113              		.loc 1 327 2 view .LVU21
+ 114              	.LVL6:
+ 328:Core/Src/MQTTPacket.c **** 
+ 329:Core/Src/MQTTPacket.c **** 	FUNC_ENTRY;
+ 115              		.loc 1 329 12 view .LVU22
+ 330:Core/Src/MQTTPacket.c **** 	if(trp->len == 0){		/* initialize on first call */
+ 116              		.loc 1 330 2 view .LVU23
+ 117              		.loc 1 330 8 is_stmt 0 view .LVU24
+ 118 0006 0369     		ldr	r3, [r0, #16]
+ 119              		.loc 1 330 4 view .LVU25
+ 120 0008 1BB9     		cbnz	r3, .L14
+ 331:Core/Src/MQTTPacket.c **** 		trp->multiplier = 1;
+ 121              		.loc 1 331 3 is_stmt 1 view .LVU26
+ 122              		.loc 1 331 19 is_stmt 0 view .LVU27
+ 123 000a 0123     		movs	r3, #1
+ 124 000c 8360     		str	r3, [r0, #8]
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 9
+
+
+ 332:Core/Src/MQTTPacket.c **** 		trp->rem_len = 0;
+ 125              		.loc 1 332 3 is_stmt 1 view .LVU28
+ 126              		.loc 1 332 16 is_stmt 0 view .LVU29
+ 127 000e 0023     		movs	r3, #0
+ 128 0010 C360     		str	r3, [r0, #12]
+ 129              	.LVL7:
+ 130              	.L14:
+ 333:Core/Src/MQTTPacket.c **** 	}
+ 334:Core/Src/MQTTPacket.c **** 	do {
+ 131              		.loc 1 334 2 is_stmt 1 view .LVU30
+ 132              	.LBB2:
+ 335:Core/Src/MQTTPacket.c **** 		int frc;
+ 133              		.loc 1 335 3 view .LVU31
+ 336:Core/Src/MQTTPacket.c **** 		if (trp->len >= MAX_NO_OF_REMAINING_LENGTH_BYTES)
+ 134              		.loc 1 336 3 view .LVU32
+ 135              		.loc 1 336 10 is_stmt 0 view .LVU33
+ 136 0012 2369     		ldr	r3, [r4, #16]
+ 137              		.loc 1 336 6 view .LVU34
+ 138 0014 032B     		cmp	r3, #3
+ 139 0016 1BDC     		bgt	.L15
+ 337:Core/Src/MQTTPacket.c **** 			goto exit;
+ 338:Core/Src/MQTTPacket.c **** 		if ((frc=(*trp->getfn)(trp->sck, &c, 1)) == -1)
+ 140              		.loc 1 338 3 is_stmt 1 view .LVU35
+ 141              		.loc 1 338 13 is_stmt 0 view .LVU36
+ 142 0018 2368     		ldr	r3, [r4]
+ 143 001a 0122     		movs	r2, #1
+ 144 001c 0DF10701 		add	r1, sp, #7
+ 145 0020 6068     		ldr	r0, [r4, #4]
+ 146 0022 9847     		blx	r3
+ 147              	.LVL8:
+ 148              		.loc 1 338 6 view .LVU37
+ 149 0024 B0F1FF3F 		cmp	r0, #-1
+ 150 0028 14D0     		beq	.L11
+ 339:Core/Src/MQTTPacket.c **** 			goto exit;
+ 340:Core/Src/MQTTPacket.c **** 		if (frc == 0){
+ 151              		.loc 1 340 3 is_stmt 1 view .LVU38
+ 152              		.loc 1 340 6 is_stmt 0 view .LVU39
+ 153 002a 98B1     		cbz	r0, .L11
+ 341:Core/Src/MQTTPacket.c **** 			rc = 0;
+ 342:Core/Src/MQTTPacket.c **** 			goto exit;
+ 343:Core/Src/MQTTPacket.c **** 		}
+ 344:Core/Src/MQTTPacket.c **** 		++(trp->len);
+ 154              		.loc 1 344 3 is_stmt 1 view .LVU40
+ 155              		.loc 1 344 9 is_stmt 0 view .LVU41
+ 156 002c 2069     		ldr	r0, [r4, #16]
+ 157              	.LVL9:
+ 158              		.loc 1 344 3 view .LVU42
+ 159 002e 0130     		adds	r0, r0, #1
+ 160 0030 2061     		str	r0, [r4, #16]
+ 345:Core/Src/MQTTPacket.c **** 		trp->rem_len += (c & 127) * trp->multiplier;
+ 161              		.loc 1 345 3 is_stmt 1 view .LVU43
+ 162              		.loc 1 345 22 is_stmt 0 view .LVU44
+ 163 0032 9DF80710 		ldrb	r1, [sp, #7]	@ zero_extendqisi2
+ 164 0036 01F07F0C 		and	ip, r1, #127
+ 165              		.loc 1 345 34 view .LVU45
+ 166 003a A368     		ldr	r3, [r4, #8]
+ 167              		.loc 1 345 16 view .LVU46
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 10
+
+
+ 168 003c E268     		ldr	r2, [r4, #12]
+ 169 003e 03FB0C22 		mla	r2, r3, ip, r2
+ 170 0042 E260     		str	r2, [r4, #12]
+ 346:Core/Src/MQTTPacket.c **** 		trp->multiplier *= 128;
+ 171              		.loc 1 346 3 is_stmt 1 view .LVU47
+ 172              		.loc 1 346 19 is_stmt 0 view .LVU48
+ 173 0044 DB01     		lsls	r3, r3, #7
+ 174 0046 A360     		str	r3, [r4, #8]
+ 175              	.LBE2:
+ 347:Core/Src/MQTTPacket.c **** 	} while ((c & 128) != 0);
+ 176              		.loc 1 347 10 is_stmt 1 view .LVU49
+ 177              		.loc 1 347 2 is_stmt 0 view .LVU50
+ 178 0048 11F0800F 		tst	r1, #128
+ 179 004c E1D1     		bne	.L14
+ 180 004e 01E0     		b	.L11
+ 181              	.L15:
+ 327:Core/Src/MQTTPacket.c **** 
+ 182              		.loc 1 327 6 view .LVU51
+ 183 0050 4FF0FF30 		mov	r0, #-1
+ 184              	.L13:
+ 348:Core/Src/MQTTPacket.c **** 	rc = trp->len;
+ 349:Core/Src/MQTTPacket.c **** exit:
+ 350:Core/Src/MQTTPacket.c **** 	FUNC_EXIT_RC(rc);
+ 185              		.loc 1 350 18 is_stmt 1 view .LVU52
+ 351:Core/Src/MQTTPacket.c **** 	return rc;
+ 186              		.loc 1 351 2 view .LVU53
+ 187              	.L11:
+ 352:Core/Src/MQTTPacket.c **** }
+ 188              		.loc 1 352 1 is_stmt 0 view .LVU54
+ 189 0054 02B0     		add	sp, sp, #8
+ 190              	.LCFI4:
+ 191              		.cfi_def_cfa_offset 8
+ 192              		@ sp needed
+ 193 0056 10BD     		pop	{r4, pc}
+ 194              		.loc 1 352 1 view .LVU55
+ 195              		.cfi_endproc
+ 196              	.LFE19:
+ 198              		.section	.text.MQTTPacket_encode,"ax",%progbits
+ 199              		.align	1
+ 200              		.global	MQTTPacket_encode
+ 201              		.syntax unified
+ 202              		.thumb
+ 203              		.thumb_func
+ 205              	MQTTPacket_encode:
+ 206              	.LVL10:
+ 207              	.LFB3:
+  30:Core/Src/MQTTPacket.c **** 	int rc = 0;
+ 208              		.loc 1 30 1 is_stmt 1 view -0
+ 209              		.cfi_startproc
+ 210              		@ args = 0, pretend = 0, frame = 0
+ 211              		@ frame_needed = 0, uses_anonymous_args = 0
+  30:Core/Src/MQTTPacket.c **** 	int rc = 0;
+ 212              		.loc 1 30 1 is_stmt 0 view .LVU57
+ 213 0000 10B5     		push	{r4, lr}
+ 214              	.LCFI5:
+ 215              		.cfi_def_cfa_offset 8
+ 216              		.cfi_offset 4, -8
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 11
+
+
+ 217              		.cfi_offset 14, -4
+ 218 0002 0446     		mov	r4, r0
+  31:Core/Src/MQTTPacket.c **** 
+ 219              		.loc 1 31 2 is_stmt 1 view .LVU58
+ 220              	.LVL11:
+  31:Core/Src/MQTTPacket.c **** 
+ 221              		.loc 1 31 6 is_stmt 0 view .LVU59
+ 222 0004 4FF0000C 		mov	ip, #0
+ 223 0008 0BE0     		b	.L20
+ 224              	.LVL12:
+ 225              	.L24:
+ 226              	.LBB3:
+  37:Core/Src/MQTTPacket.c **** 		/* if there are more digits to encode, set the top bit of this digit */
+ 227              		.loc 1 37 10 view .LVU60
+ 228 000a 01F17F0E 		add	lr, r1, #127
+ 229 000e 14E0     		b	.L18
+ 230              	.L25:
+  40:Core/Src/MQTTPacket.c **** 		buf[rc++] = d;
+ 231              		.loc 1 40 4 is_stmt 1 view .LVU61
+  40:Core/Src/MQTTPacket.c **** 		buf[rc++] = d;
+ 232              		.loc 1 40 6 is_stmt 0 view .LVU62
+ 233 0010 43F08003 		orr	r3, r3, #128
+ 234              	.LVL13:
+ 235              	.L19:
+  41:Core/Src/MQTTPacket.c **** 	} while (length > 0);
+ 236              		.loc 1 41 3 is_stmt 1 view .LVU63
+  41:Core/Src/MQTTPacket.c **** 	} while (length > 0);
+ 237              		.loc 1 41 9 is_stmt 0 view .LVU64
+ 238 0014 0CF10100 		add	r0, ip, #1
+ 239              	.LVL14:
+  41:Core/Src/MQTTPacket.c **** 	} while (length > 0);
+ 240              		.loc 1 41 13 view .LVU65
+ 241 0018 04F80C30 		strb	r3, [r4, ip]
+ 242              	.LBE3:
+  42:Core/Src/MQTTPacket.c **** 	FUNC_EXIT_RC(rc);
+ 243              		.loc 1 42 10 is_stmt 1 view .LVU66
+  42:Core/Src/MQTTPacket.c **** 	FUNC_EXIT_RC(rc);
+ 244              		.loc 1 42 2 is_stmt 0 view .LVU67
+ 245 001c 7F2A     		cmp	r2, #127
+ 246 001e 11DD     		ble	.L23
+ 247              	.LBB4:
+  41:Core/Src/MQTTPacket.c **** 	} while (length > 0);
+ 248              		.loc 1 41 9 view .LVU68
+ 249 0020 8446     		mov	ip, r0
+ 250              	.LVL15:
+ 251              	.L20:
+  41:Core/Src/MQTTPacket.c **** 	} while (length > 0);
+ 252              		.loc 1 41 9 view .LVU69
+ 253              	.LBE4:
+  33:Core/Src/MQTTPacket.c **** 	do
+ 254              		.loc 1 33 12 is_stmt 1 view .LVU70
+  34:Core/Src/MQTTPacket.c **** 	{
+ 255              		.loc 1 34 2 view .LVU71
+ 256              	.LBB5:
+  36:Core/Src/MQTTPacket.c **** 		length /= 128;
+ 257              		.loc 1 36 3 view .LVU72
+  36:Core/Src/MQTTPacket.c **** 		length /= 128;
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 12
+
+
+ 258              		.loc 1 36 19 is_stmt 0 view .LVU73
+ 259 0022 4A42     		rsbs	r2, r1, #0
+ 260 0024 01F07F03 		and	r3, r1, #127
+ 261 0028 02F07F02 		and	r2, r2, #127
+ 262 002c 58BF     		it	pl
+ 263 002e 5342     		rsbpl	r3, r2, #0
+  36:Core/Src/MQTTPacket.c **** 		length /= 128;
+ 264              		.loc 1 36 8 view .LVU74
+ 265 0030 DBB2     		uxtb	r3, r3
+ 266              	.LVL16:
+  37:Core/Src/MQTTPacket.c **** 		/* if there are more digits to encode, set the top bit of this digit */
+ 267              		.loc 1 37 3 is_stmt 1 view .LVU75
+ 268 0032 0A46     		mov	r2, r1
+  37:Core/Src/MQTTPacket.c **** 		/* if there are more digits to encode, set the top bit of this digit */
+ 269              		.loc 1 37 10 is_stmt 0 view .LVU76
+ 270 0034 8E46     		mov	lr, r1
+ 271 0036 0029     		cmp	r1, #0
+ 272 0038 E7DB     		blt	.L24
+ 273              	.L18:
+  37:Core/Src/MQTTPacket.c **** 		/* if there are more digits to encode, set the top bit of this digit */
+ 274              		.loc 1 37 10 view .LVU77
+ 275 003a 4FEAEE11 		asr	r1, lr, #7
+ 276              	.LVL17:
+  39:Core/Src/MQTTPacket.c **** 			d |= 0x80;
+ 277              		.loc 1 39 3 is_stmt 1 view .LVU78
+  39:Core/Src/MQTTPacket.c **** 			d |= 0x80;
+ 278              		.loc 1 39 6 is_stmt 0 view .LVU79
+ 279 003e 7F2A     		cmp	r2, #127
+ 280 0040 E8DD     		ble	.L19
+ 281 0042 E5E7     		b	.L25
+ 282              	.LVL18:
+ 283              	.L23:
+  39:Core/Src/MQTTPacket.c **** 			d |= 0x80;
+ 284              		.loc 1 39 6 view .LVU80
+ 285              	.LBE5:
+  43:Core/Src/MQTTPacket.c **** 	return rc;
+ 286              		.loc 1 43 18 is_stmt 1 view .LVU81
+  44:Core/Src/MQTTPacket.c **** }
+ 287              		.loc 1 44 2 view .LVU82
+  45:Core/Src/MQTTPacket.c **** 
+ 288              		.loc 1 45 1 is_stmt 0 view .LVU83
+ 289 0044 10BD     		pop	{r4, pc}
+  45:Core/Src/MQTTPacket.c **** 
+ 290              		.loc 1 45 1 view .LVU84
+ 291              		.cfi_endproc
+ 292              	.LFE3:
+ 294              		.section	.text.MQTTPacket_decode,"ax",%progbits
+ 295              		.align	1
+ 296              		.global	MQTTPacket_decode
+ 297              		.syntax unified
+ 298              		.thumb
+ 299              		.thumb_func
+ 301              	MQTTPacket_decode:
+ 302              	.LVL19:
+ 303              	.LFB4:
+  55:Core/Src/MQTTPacket.c **** 	unsigned char c;
+ 304              		.loc 1 55 1 is_stmt 1 view -0
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 13
+
+
+ 305              		.cfi_startproc
+ 306              		@ args = 0, pretend = 0, frame = 8
+ 307              		@ frame_needed = 0, uses_anonymous_args = 0
+  55:Core/Src/MQTTPacket.c **** 	unsigned char c;
+ 308              		.loc 1 55 1 is_stmt 0 view .LVU86
+ 309 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+ 310              	.LCFI6:
+ 311              		.cfi_def_cfa_offset 20
+ 312              		.cfi_offset 4, -20
+ 313              		.cfi_offset 5, -16
+ 314              		.cfi_offset 6, -12
+ 315              		.cfi_offset 7, -8
+ 316              		.cfi_offset 14, -4
+ 317 0002 83B0     		sub	sp, sp, #12
+ 318              	.LCFI7:
+ 319              		.cfi_def_cfa_offset 32
+ 320 0004 0746     		mov	r7, r0
+ 321 0006 0D46     		mov	r5, r1
+  56:Core/Src/MQTTPacket.c **** 	int multiplier = 1;
+ 322              		.loc 1 56 2 is_stmt 1 view .LVU87
+  57:Core/Src/MQTTPacket.c **** 	int len = 0;
+ 323              		.loc 1 57 2 view .LVU88
+ 324              	.LVL20:
+  58:Core/Src/MQTTPacket.c **** #define MAX_NO_OF_REMAINING_LENGTH_BYTES 4
+ 325              		.loc 1 58 2 view .LVU89
+  61:Core/Src/MQTTPacket.c **** 	*value = 0;
+ 326              		.loc 1 61 12 view .LVU90
+  62:Core/Src/MQTTPacket.c **** 	do
+ 327              		.loc 1 62 2 view .LVU91
+  62:Core/Src/MQTTPacket.c **** 	do
+ 328              		.loc 1 62 9 is_stmt 0 view .LVU92
+ 329 0008 0024     		movs	r4, #0
+ 330 000a 0C60     		str	r4, [r1]
+  57:Core/Src/MQTTPacket.c **** 	int len = 0;
+ 331              		.loc 1 57 6 view .LVU93
+ 332 000c 0126     		movs	r6, #1
+ 333              	.LVL21:
+ 334              	.L28:
+  63:Core/Src/MQTTPacket.c **** 	{
+ 335              		.loc 1 63 2 is_stmt 1 view .LVU94
+ 336              	.LBB6:
+  65:Core/Src/MQTTPacket.c **** 
+ 337              		.loc 1 65 3 view .LVU95
+  67:Core/Src/MQTTPacket.c **** 		{
+ 338              		.loc 1 67 3 view .LVU96
+  67:Core/Src/MQTTPacket.c **** 		{
+ 339              		.loc 1 67 6 is_stmt 0 view .LVU97
+ 340 000e 0134     		adds	r4, r4, #1
+ 341              	.LVL22:
+  67:Core/Src/MQTTPacket.c **** 		{
+ 342              		.loc 1 67 6 view .LVU98
+ 343 0010 042C     		cmp	r4, #4
+ 344 0012 12DC     		bgt	.L26
+  72:Core/Src/MQTTPacket.c **** 		if (rc != 1)
+ 345              		.loc 1 72 3 is_stmt 1 view .LVU99
+  72:Core/Src/MQTTPacket.c **** 		if (rc != 1)
+ 346              		.loc 1 72 9 is_stmt 0 view .LVU100
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 14
+
+
+ 347 0014 0121     		movs	r1, #1
+ 348 0016 0DF10700 		add	r0, sp, #7
+ 349 001a B847     		blx	r7
+ 350              	.LVL23:
+  73:Core/Src/MQTTPacket.c **** 			goto exit;
+ 351              		.loc 1 73 3 is_stmt 1 view .LVU101
+  73:Core/Src/MQTTPacket.c **** 			goto exit;
+ 352              		.loc 1 73 6 is_stmt 0 view .LVU102
+ 353 001c 0128     		cmp	r0, #1
+ 354 001e 0CD1     		bne	.L26
+  75:Core/Src/MQTTPacket.c **** 		multiplier *= 128;
+ 355              		.loc 1 75 3 is_stmt 1 view .LVU103
+  75:Core/Src/MQTTPacket.c **** 		multiplier *= 128;
+ 356              		.loc 1 75 16 is_stmt 0 view .LVU104
+ 357 0020 9DF80730 		ldrb	r3, [sp, #7]	@ zero_extendqisi2
+ 358 0024 03F07F02 		and	r2, r3, #127
+  75:Core/Src/MQTTPacket.c **** 		multiplier *= 128;
+ 359              		.loc 1 75 10 view .LVU105
+ 360 0028 2B68     		ldr	r3, [r5]
+ 361 002a 06FB0233 		mla	r3, r6, r2, r3
+ 362 002e 2B60     		str	r3, [r5]
+  76:Core/Src/MQTTPacket.c **** 	} while ((c & 128) != 0);
+ 363              		.loc 1 76 3 is_stmt 1 view .LVU106
+  76:Core/Src/MQTTPacket.c **** 	} while ((c & 128) != 0);
+ 364              		.loc 1 76 14 is_stmt 0 view .LVU107
+ 365 0030 F601     		lsls	r6, r6, #7
+ 366              	.LVL24:
+  76:Core/Src/MQTTPacket.c **** 	} while ((c & 128) != 0);
+ 367              		.loc 1 76 14 view .LVU108
+ 368              	.LBE6:
+  77:Core/Src/MQTTPacket.c **** exit:
+ 369              		.loc 1 77 10 is_stmt 1 view .LVU109
+  77:Core/Src/MQTTPacket.c **** exit:
+ 370              		.loc 1 77 21 is_stmt 0 view .LVU110
+ 371 0032 9DF90730 		ldrsb	r3, [sp, #7]
+  77:Core/Src/MQTTPacket.c **** exit:
+ 372              		.loc 1 77 2 view .LVU111
+ 373 0036 002B     		cmp	r3, #0
+ 374 0038 E9DB     		blt	.L28
+ 375              	.L27:
+ 376              	.LVL25:
+ 377              	.L26:
+  81:Core/Src/MQTTPacket.c **** 
+ 378              		.loc 1 81 1 view .LVU112
+ 379 003a 2046     		mov	r0, r4
+ 380 003c 03B0     		add	sp, sp, #12
+ 381              	.LCFI8:
+ 382              		.cfi_def_cfa_offset 20
+ 383              		@ sp needed
+ 384 003e F0BD     		pop	{r4, r5, r6, r7, pc}
+  81:Core/Src/MQTTPacket.c **** 
+ 385              		.loc 1 81 1 view .LVU113
+ 386              		.cfi_endproc
+ 387              	.LFE4:
+ 389              		.section	.text.MQTTPacket_len,"ax",%progbits
+ 390              		.align	1
+ 391              		.global	MQTTPacket_len
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 15
+
+
+ 392              		.syntax unified
+ 393              		.thumb
+ 394              		.thumb_func
+ 396              	MQTTPacket_len:
+ 397              	.LVL26:
+ 398              	.LFB5:
+  85:Core/Src/MQTTPacket.c **** 	rem_len += 1; /* header byte */
+ 399              		.loc 1 85 1 is_stmt 1 view -0
+ 400              		.cfi_startproc
+ 401              		@ args = 0, pretend = 0, frame = 0
+ 402              		@ frame_needed = 0, uses_anonymous_args = 0
+ 403              		@ link register save eliminated.
+  86:Core/Src/MQTTPacket.c **** 
+ 404              		.loc 1 86 2 view .LVU115
+  86:Core/Src/MQTTPacket.c **** 
+ 405              		.loc 1 86 10 is_stmt 0 view .LVU116
+ 406 0000 431C     		adds	r3, r0, #1
+ 407              	.LVL27:
+  89:Core/Src/MQTTPacket.c **** 		rem_len += 1;
+ 408              		.loc 1 89 2 is_stmt 1 view .LVU117
+  89:Core/Src/MQTTPacket.c **** 		rem_len += 1;
+ 409              		.loc 1 89 5 is_stmt 0 view .LVU118
+ 410 0002 7F2B     		cmp	r3, #127
+ 411 0004 01DC     		bgt	.L31
+  90:Core/Src/MQTTPacket.c **** 	else if (rem_len < 16384)
+ 412              		.loc 1 90 3 is_stmt 1 view .LVU119
+  90:Core/Src/MQTTPacket.c **** 	else if (rem_len < 16384)
+ 413              		.loc 1 90 11 is_stmt 0 view .LVU120
+ 414 0006 0230     		adds	r0, r0, #2
+ 415              	.LVL28:
+  90:Core/Src/MQTTPacket.c **** 	else if (rem_len < 16384)
+ 416              		.loc 1 90 11 view .LVU121
+ 417 0008 7047     		bx	lr
+ 418              	.LVL29:
+ 419              	.L31:
+  91:Core/Src/MQTTPacket.c **** 		rem_len += 2;
+ 420              		.loc 1 91 7 is_stmt 1 view .LVU122
+  91:Core/Src/MQTTPacket.c **** 		rem_len += 2;
+ 421              		.loc 1 91 10 is_stmt 0 view .LVU123
+ 422 000a B3F5804F 		cmp	r3, #16384
+ 423 000e 01DA     		bge	.L33
+  92:Core/Src/MQTTPacket.c **** 	else if (rem_len < 2097151)
+ 424              		.loc 1 92 3 is_stmt 1 view .LVU124
+  92:Core/Src/MQTTPacket.c **** 	else if (rem_len < 2097151)
+ 425              		.loc 1 92 11 is_stmt 0 view .LVU125
+ 426 0010 0330     		adds	r0, r0, #3
+ 427              	.LVL30:
+  92:Core/Src/MQTTPacket.c **** 	else if (rem_len < 2097151)
+ 428              		.loc 1 92 11 view .LVU126
+ 429 0012 7047     		bx	lr
+ 430              	.LVL31:
+ 431              	.L33:
+  93:Core/Src/MQTTPacket.c **** 		rem_len += 3;
+ 432              		.loc 1 93 7 is_stmt 1 view .LVU127
+  93:Core/Src/MQTTPacket.c **** 		rem_len += 3;
+ 433              		.loc 1 93 10 is_stmt 0 view .LVU128
+ 434 0014 034A     		ldr	r2, .L35
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 16
+
+
+ 435 0016 9342     		cmp	r3, r2
+ 436 0018 01DC     		bgt	.L34
+  94:Core/Src/MQTTPacket.c **** 	else
+ 437              		.loc 1 94 3 is_stmt 1 view .LVU129
+  94:Core/Src/MQTTPacket.c **** 	else
+ 438              		.loc 1 94 11 is_stmt 0 view .LVU130
+ 439 001a 0430     		adds	r0, r0, #4
+ 440              	.LVL32:
+  94:Core/Src/MQTTPacket.c **** 	else
+ 441              		.loc 1 94 11 view .LVU131
+ 442 001c 7047     		bx	lr
+ 443              	.LVL33:
+ 444              	.L34:
+  96:Core/Src/MQTTPacket.c **** 	return rem_len;
+ 445              		.loc 1 96 3 is_stmt 1 view .LVU132
+  96:Core/Src/MQTTPacket.c **** 	return rem_len;
+ 446              		.loc 1 96 11 is_stmt 0 view .LVU133
+ 447 001e 0530     		adds	r0, r0, #5
+ 448              	.LVL34:
+  97:Core/Src/MQTTPacket.c **** }
+ 449              		.loc 1 97 2 is_stmt 1 view .LVU134
+  98:Core/Src/MQTTPacket.c **** 
+ 450              		.loc 1 98 1 is_stmt 0 view .LVU135
+ 451 0020 7047     		bx	lr
+ 452              	.L36:
+ 453 0022 00BF     		.align	2
+ 454              	.L35:
+ 455 0024 FEFF1F00 		.word	2097150
+ 456              		.cfi_endproc
+ 457              	.LFE5:
+ 459              		.section	.text.MQTTPacket_decodeBuf,"ax",%progbits
+ 460              		.align	1
+ 461              		.global	MQTTPacket_decodeBuf
+ 462              		.syntax unified
+ 463              		.thumb
+ 464              		.thumb_func
+ 466              	MQTTPacket_decodeBuf:
+ 467              	.LVL35:
+ 468              	.LFB7:
+ 114:Core/Src/MQTTPacket.c **** 	bufptr = buf;
+ 469              		.loc 1 114 1 is_stmt 1 view -0
+ 470              		.cfi_startproc
+ 471              		@ args = 0, pretend = 0, frame = 0
+ 472              		@ frame_needed = 0, uses_anonymous_args = 0
+ 114:Core/Src/MQTTPacket.c **** 	bufptr = buf;
+ 473              		.loc 1 114 1 is_stmt 0 view .LVU137
+ 474 0000 08B5     		push	{r3, lr}
+ 475              	.LCFI9:
+ 476              		.cfi_def_cfa_offset 8
+ 477              		.cfi_offset 3, -8
+ 478              		.cfi_offset 14, -4
+ 115:Core/Src/MQTTPacket.c **** 	return MQTTPacket_decode(bufchar, value);
+ 479              		.loc 1 115 2 is_stmt 1 view .LVU138
+ 115:Core/Src/MQTTPacket.c **** 	return MQTTPacket_decode(bufchar, value);
+ 480              		.loc 1 115 9 is_stmt 0 view .LVU139
+ 481 0002 034B     		ldr	r3, .L39
+ 482 0004 1860     		str	r0, [r3]
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 17
+
+
+ 116:Core/Src/MQTTPacket.c **** }
+ 483              		.loc 1 116 2 is_stmt 1 view .LVU140
+ 116:Core/Src/MQTTPacket.c **** }
+ 484              		.loc 1 116 9 is_stmt 0 view .LVU141
+ 485 0006 0348     		ldr	r0, .L39+4
+ 486              	.LVL36:
+ 116:Core/Src/MQTTPacket.c **** }
+ 487              		.loc 1 116 9 view .LVU142
+ 488 0008 FFF7FEFF 		bl	MQTTPacket_decode
+ 489              	.LVL37:
+ 117:Core/Src/MQTTPacket.c **** 
+ 490              		.loc 1 117 1 view .LVU143
+ 491 000c 08BD     		pop	{r3, pc}
+ 492              	.L40:
+ 493 000e 00BF     		.align	2
+ 494              	.L39:
+ 495 0010 00000000 		.word	.LANCHOR0
+ 496 0014 00000000 		.word	bufchar
+ 497              		.cfi_endproc
+ 498              	.LFE7:
+ 500              		.section	.text.readInt,"ax",%progbits
+ 501              		.align	1
+ 502              		.global	readInt
+ 503              		.syntax unified
+ 504              		.thumb
+ 505              		.thumb_func
+ 507              	readInt:
+ 508              	.LVL38:
+ 509              	.LFB8:
+ 126:Core/Src/MQTTPacket.c **** 	unsigned char* ptr = *pptr;
+ 510              		.loc 1 126 1 is_stmt 1 view -0
+ 511              		.cfi_startproc
+ 512              		@ args = 0, pretend = 0, frame = 0
+ 513              		@ frame_needed = 0, uses_anonymous_args = 0
+ 514              		@ link register save eliminated.
+ 127:Core/Src/MQTTPacket.c **** 	int len = 256*(*ptr) + (*(ptr+1));
+ 515              		.loc 1 127 2 view .LVU145
+ 127:Core/Src/MQTTPacket.c **** 	int len = 256*(*ptr) + (*(ptr+1));
+ 516              		.loc 1 127 17 is_stmt 0 view .LVU146
+ 517 0000 0368     		ldr	r3, [r0]
+ 518              	.LVL39:
+ 128:Core/Src/MQTTPacket.c **** 	*pptr += 2;
+ 519              		.loc 1 128 2 is_stmt 1 view .LVU147
+ 128:Core/Src/MQTTPacket.c **** 	*pptr += 2;
+ 520              		.loc 1 128 17 is_stmt 0 view .LVU148
+ 521 0002 1978     		ldrb	r1, [r3]	@ zero_extendqisi2
+ 128:Core/Src/MQTTPacket.c **** 	*pptr += 2;
+ 522              		.loc 1 128 26 view .LVU149
+ 523 0004 5A78     		ldrb	r2, [r3, #1]	@ zero_extendqisi2
+ 524              	.LVL40:
+ 129:Core/Src/MQTTPacket.c **** 	return len;
+ 525              		.loc 1 129 2 is_stmt 1 view .LVU150
+ 129:Core/Src/MQTTPacket.c **** 	return len;
+ 526              		.loc 1 129 8 is_stmt 0 view .LVU151
+ 527 0006 0233     		adds	r3, r3, #2
+ 528              	.LVL41:
+ 129:Core/Src/MQTTPacket.c **** 	return len;
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 18
+
+
+ 529              		.loc 1 129 8 view .LVU152
+ 530 0008 0360     		str	r3, [r0]
+ 531              	.LVL42:
+ 130:Core/Src/MQTTPacket.c **** }
+ 532              		.loc 1 130 2 is_stmt 1 view .LVU153
+ 131:Core/Src/MQTTPacket.c **** 
+ 533              		.loc 1 131 1 is_stmt 0 view .LVU154
+ 534 000a 02EB0120 		add	r0, r2, r1, lsl #8
+ 535              	.LVL43:
+ 131:Core/Src/MQTTPacket.c **** 
+ 536              		.loc 1 131 1 view .LVU155
+ 537 000e 7047     		bx	lr
+ 538              		.cfi_endproc
+ 539              	.LFE8:
+ 541              		.section	.text.readChar,"ax",%progbits
+ 542              		.align	1
+ 543              		.global	readChar
+ 544              		.syntax unified
+ 545              		.thumb
+ 546              		.thumb_func
+ 548              	readChar:
+ 549              	.LVL44:
+ 550              	.LFB9:
+ 140:Core/Src/MQTTPacket.c **** 	char c = **pptr;
+ 551              		.loc 1 140 1 is_stmt 1 view -0
+ 552              		.cfi_startproc
+ 553              		@ args = 0, pretend = 0, frame = 0
+ 554              		@ frame_needed = 0, uses_anonymous_args = 0
+ 555              		@ link register save eliminated.
+ 140:Core/Src/MQTTPacket.c **** 	char c = **pptr;
+ 556              		.loc 1 140 1 is_stmt 0 view .LVU157
+ 557 0000 0346     		mov	r3, r0
+ 141:Core/Src/MQTTPacket.c **** 	(*pptr)++;
+ 558              		.loc 1 141 2 is_stmt 1 view .LVU158
+ 141:Core/Src/MQTTPacket.c **** 	(*pptr)++;
+ 559              		.loc 1 141 7 is_stmt 0 view .LVU159
+ 560 0002 0268     		ldr	r2, [r0]
+ 561 0004 12F8010B 		ldrb	r0, [r2], #1	@ zero_extendqisi2
+ 562              	.LVL45:
+ 142:Core/Src/MQTTPacket.c **** 	return c;
+ 563              		.loc 1 142 2 is_stmt 1 view .LVU160
+ 142:Core/Src/MQTTPacket.c **** 	return c;
+ 564              		.loc 1 142 9 is_stmt 0 view .LVU161
+ 565 0008 1A60     		str	r2, [r3]
+ 143:Core/Src/MQTTPacket.c **** }
+ 566              		.loc 1 143 2 is_stmt 1 view .LVU162
+ 144:Core/Src/MQTTPacket.c **** 
+ 567              		.loc 1 144 1 is_stmt 0 view .LVU163
+ 568 000a 7047     		bx	lr
+ 569              		.cfi_endproc
+ 570              	.LFE9:
+ 572              		.section	.text.writeChar,"ax",%progbits
+ 573              		.align	1
+ 574              		.global	writeChar
+ 575              		.syntax unified
+ 576              		.thumb
+ 577              		.thumb_func
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 19
+
+
+ 579              	writeChar:
+ 580              	.LVL46:
+ 581              	.LFB10:
+ 153:Core/Src/MQTTPacket.c **** 	**pptr = c;
+ 582              		.loc 1 153 1 is_stmt 1 view -0
+ 583              		.cfi_startproc
+ 584              		@ args = 0, pretend = 0, frame = 0
+ 585              		@ frame_needed = 0, uses_anonymous_args = 0
+ 586              		@ link register save eliminated.
+ 154:Core/Src/MQTTPacket.c **** 	(*pptr)++;
+ 587              		.loc 1 154 2 view .LVU165
+ 154:Core/Src/MQTTPacket.c **** 	(*pptr)++;
+ 588              		.loc 1 154 3 is_stmt 0 view .LVU166
+ 589 0000 0368     		ldr	r3, [r0]
+ 154:Core/Src/MQTTPacket.c **** 	(*pptr)++;
+ 590              		.loc 1 154 9 view .LVU167
+ 591 0002 1970     		strb	r1, [r3]
+ 155:Core/Src/MQTTPacket.c **** }
+ 592              		.loc 1 155 2 is_stmt 1 view .LVU168
+ 155:Core/Src/MQTTPacket.c **** }
+ 593              		.loc 1 155 3 is_stmt 0 view .LVU169
+ 594 0004 0368     		ldr	r3, [r0]
+ 155:Core/Src/MQTTPacket.c **** }
+ 595              		.loc 1 155 9 view .LVU170
+ 596 0006 0133     		adds	r3, r3, #1
+ 597 0008 0360     		str	r3, [r0]
+ 156:Core/Src/MQTTPacket.c **** 
+ 598              		.loc 1 156 1 view .LVU171
+ 599 000a 7047     		bx	lr
+ 600              		.cfi_endproc
+ 601              	.LFE10:
+ 603              		.section	.text.writeInt,"ax",%progbits
+ 604              		.align	1
+ 605              		.global	writeInt
+ 606              		.syntax unified
+ 607              		.thumb
+ 608              		.thumb_func
+ 610              	writeInt:
+ 611              	.LVL47:
+ 612              	.LFB11:
+ 165:Core/Src/MQTTPacket.c **** 	**pptr = (unsigned char)(anInt / 256);
+ 613              		.loc 1 165 1 is_stmt 1 view -0
+ 614              		.cfi_startproc
+ 615              		@ args = 0, pretend = 0, frame = 0
+ 616              		@ frame_needed = 0, uses_anonymous_args = 0
+ 617              		@ link register save eliminated.
+ 166:Core/Src/MQTTPacket.c **** 	(*pptr)++;
+ 618              		.loc 1 166 2 view .LVU173
+ 166:Core/Src/MQTTPacket.c **** 	(*pptr)++;
+ 619              		.loc 1 166 33 is_stmt 0 view .LVU174
+ 620 0000 0B46     		mov	r3, r1
+ 621 0002 0029     		cmp	r1, #0
+ 622 0004 10DB     		blt	.L46
+ 623              	.L45:
+ 166:Core/Src/MQTTPacket.c **** 	(*pptr)++;
+ 624              		.loc 1 166 3 view .LVU175
+ 625 0006 0268     		ldr	r2, [r0]
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 20
+
+
+ 166:Core/Src/MQTTPacket.c **** 	(*pptr)++;
+ 626              		.loc 1 166 11 view .LVU176
+ 627 0008 C3F30723 		ubfx	r3, r3, #8, #8
+ 166:Core/Src/MQTTPacket.c **** 	(*pptr)++;
+ 628              		.loc 1 166 9 view .LVU177
+ 629 000c 1370     		strb	r3, [r2]
+ 167:Core/Src/MQTTPacket.c **** 	**pptr = (unsigned char)(anInt % 256);
+ 630              		.loc 1 167 2 is_stmt 1 view .LVU178
+ 167:Core/Src/MQTTPacket.c **** 	**pptr = (unsigned char)(anInt % 256);
+ 631              		.loc 1 167 3 is_stmt 0 view .LVU179
+ 632 000e 0268     		ldr	r2, [r0]
+ 167:Core/Src/MQTTPacket.c **** 	**pptr = (unsigned char)(anInt % 256);
+ 633              		.loc 1 167 9 view .LVU180
+ 634 0010 531C     		adds	r3, r2, #1
+ 635 0012 0360     		str	r3, [r0]
+ 168:Core/Src/MQTTPacket.c **** 	(*pptr)++;
+ 636              		.loc 1 168 2 is_stmt 1 view .LVU181
+ 168:Core/Src/MQTTPacket.c **** 	(*pptr)++;
+ 637              		.loc 1 168 33 is_stmt 0 view .LVU182
+ 638 0014 4B42     		rsbs	r3, r1, #0
+ 639 0016 C9B2     		uxtb	r1, r1
+ 640              	.LVL48:
+ 168:Core/Src/MQTTPacket.c **** 	(*pptr)++;
+ 641              		.loc 1 168 33 view .LVU183
+ 642 0018 DBB2     		uxtb	r3, r3
+ 643 001a 58BF     		it	pl
+ 644 001c 5942     		rsbpl	r1, r3, #0
+ 168:Core/Src/MQTTPacket.c **** 	(*pptr)++;
+ 645              		.loc 1 168 9 view .LVU184
+ 646 001e 5170     		strb	r1, [r2, #1]
+ 169:Core/Src/MQTTPacket.c **** }
+ 647              		.loc 1 169 2 is_stmt 1 view .LVU185
+ 169:Core/Src/MQTTPacket.c **** }
+ 648              		.loc 1 169 3 is_stmt 0 view .LVU186
+ 649 0020 0368     		ldr	r3, [r0]
+ 169:Core/Src/MQTTPacket.c **** }
+ 650              		.loc 1 169 9 view .LVU187
+ 651 0022 0133     		adds	r3, r3, #1
+ 652 0024 0360     		str	r3, [r0]
+ 170:Core/Src/MQTTPacket.c **** 
+ 653              		.loc 1 170 1 view .LVU188
+ 654 0026 7047     		bx	lr
+ 655              	.LVL49:
+ 656              	.L46:
+ 166:Core/Src/MQTTPacket.c **** 	(*pptr)++;
+ 657              		.loc 1 166 33 view .LVU189
+ 658 0028 01F1FF03 		add	r3, r1, #255
+ 659 002c EBE7     		b	.L45
+ 660              		.cfi_endproc
+ 661              	.LFE11:
+ 663              		.section	.text.writeCString,"ax",%progbits
+ 664              		.align	1
+ 665              		.global	writeCString
+ 666              		.syntax unified
+ 667              		.thumb
+ 668              		.thumb_func
+ 670              	writeCString:
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 21
+
+
+ 671              	.LVL50:
+ 672              	.LFB12:
+ 179:Core/Src/MQTTPacket.c **** 	int len = strlen(string);
+ 673              		.loc 1 179 1 is_stmt 1 view -0
+ 674              		.cfi_startproc
+ 675              		@ args = 0, pretend = 0, frame = 0
+ 676              		@ frame_needed = 0, uses_anonymous_args = 0
+ 179:Core/Src/MQTTPacket.c **** 	int len = strlen(string);
+ 677              		.loc 1 179 1 is_stmt 0 view .LVU191
+ 678 0000 70B5     		push	{r4, r5, r6, lr}
+ 679              	.LCFI10:
+ 680              		.cfi_def_cfa_offset 16
+ 681              		.cfi_offset 4, -16
+ 682              		.cfi_offset 5, -12
+ 683              		.cfi_offset 6, -8
+ 684              		.cfi_offset 14, -4
+ 685 0002 0446     		mov	r4, r0
+ 686 0004 0E46     		mov	r6, r1
+ 180:Core/Src/MQTTPacket.c **** 	writeInt(pptr, len);
+ 687              		.loc 1 180 2 is_stmt 1 view .LVU192
+ 180:Core/Src/MQTTPacket.c **** 	writeInt(pptr, len);
+ 688              		.loc 1 180 12 is_stmt 0 view .LVU193
+ 689 0006 0846     		mov	r0, r1
+ 690              	.LVL51:
+ 180:Core/Src/MQTTPacket.c **** 	writeInt(pptr, len);
+ 691              		.loc 1 180 12 view .LVU194
+ 692 0008 FFF7FEFF 		bl	strlen
+ 693              	.LVL52:
+ 180:Core/Src/MQTTPacket.c **** 	writeInt(pptr, len);
+ 694              		.loc 1 180 12 view .LVU195
+ 695 000c 0546     		mov	r5, r0
+ 696              	.LVL53:
+ 181:Core/Src/MQTTPacket.c **** 	memcpy(*pptr, string, len);
+ 697              		.loc 1 181 2 is_stmt 1 view .LVU196
+ 698 000e 0146     		mov	r1, r0
+ 699 0010 2046     		mov	r0, r4
+ 700              	.LVL54:
+ 181:Core/Src/MQTTPacket.c **** 	memcpy(*pptr, string, len);
+ 701              		.loc 1 181 2 is_stmt 0 view .LVU197
+ 702 0012 FFF7FEFF 		bl	writeInt
+ 703              	.LVL55:
+ 182:Core/Src/MQTTPacket.c **** 	*pptr += len;
+ 704              		.loc 1 182 2 is_stmt 1 view .LVU198
+ 705 0016 2A46     		mov	r2, r5
+ 706 0018 3146     		mov	r1, r6
+ 707 001a 2068     		ldr	r0, [r4]
+ 708 001c FFF7FEFF 		bl	memcpy
+ 709              	.LVL56:
+ 183:Core/Src/MQTTPacket.c **** }
+ 710              		.loc 1 183 2 view .LVU199
+ 183:Core/Src/MQTTPacket.c **** }
+ 711              		.loc 1 183 8 is_stmt 0 view .LVU200
+ 712 0020 2068     		ldr	r0, [r4]
+ 713 0022 2844     		add	r0, r0, r5
+ 714 0024 2060     		str	r0, [r4]
+ 184:Core/Src/MQTTPacket.c **** 
+ 715              		.loc 1 184 1 view .LVU201
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 22
+
+
+ 716 0026 70BD     		pop	{r4, r5, r6, pc}
+ 184:Core/Src/MQTTPacket.c **** 
+ 717              		.loc 1 184 1 view .LVU202
+ 718              		.cfi_endproc
+ 719              	.LFE12:
+ 721              		.section	.text.getLenStringLen,"ax",%progbits
+ 722              		.align	1
+ 723              		.global	getLenStringLen
+ 724              		.syntax unified
+ 725              		.thumb
+ 726              		.thumb_func
+ 728              	getLenStringLen:
+ 729              	.LVL57:
+ 730              	.LFB13:
+ 188:Core/Src/MQTTPacket.c **** 	int len = 256*((unsigned char)(*ptr)) + (unsigned char)(*(ptr+1));
+ 731              		.loc 1 188 1 is_stmt 1 view -0
+ 732              		.cfi_startproc
+ 733              		@ args = 0, pretend = 0, frame = 0
+ 734              		@ frame_needed = 0, uses_anonymous_args = 0
+ 735              		@ link register save eliminated.
+ 189:Core/Src/MQTTPacket.c **** 	return len;
+ 736              		.loc 1 189 2 view .LVU204
+ 189:Core/Src/MQTTPacket.c **** 	return len;
+ 737              		.loc 1 189 33 is_stmt 0 view .LVU205
+ 738 0000 0278     		ldrb	r2, [r0]	@ zero_extendqisi2
+ 189:Core/Src/MQTTPacket.c **** 	return len;
+ 739              		.loc 1 189 58 view .LVU206
+ 740 0002 4078     		ldrb	r0, [r0, #1]	@ zero_extendqisi2
+ 741              	.LVL58:
+ 190:Core/Src/MQTTPacket.c **** }
+ 742              		.loc 1 190 2 is_stmt 1 view .LVU207
+ 191:Core/Src/MQTTPacket.c **** 
+ 743              		.loc 1 191 1 is_stmt 0 view .LVU208
+ 744 0004 00EB0220 		add	r0, r0, r2, lsl #8
+ 745              	.LVL59:
+ 191:Core/Src/MQTTPacket.c **** 
+ 746              		.loc 1 191 1 view .LVU209
+ 747 0008 7047     		bx	lr
+ 748              		.cfi_endproc
+ 749              	.LFE13:
+ 751              		.section	.text.writeMQTTString,"ax",%progbits
+ 752              		.align	1
+ 753              		.global	writeMQTTString
+ 754              		.syntax unified
+ 755              		.thumb
+ 756              		.thumb_func
+ 758              	writeMQTTString:
+ 759              	.LVL60:
+ 760              	.LFB14:
+ 195:Core/Src/MQTTPacket.c **** 	if (mqttstring.lenstring.len > 0)
+ 761              		.loc 1 195 1 is_stmt 1 view -0
+ 762              		.cfi_startproc
+ 763              		@ args = 0, pretend = 0, frame = 16
+ 764              		@ frame_needed = 0, uses_anonymous_args = 0
+ 195:Core/Src/MQTTPacket.c **** 	if (mqttstring.lenstring.len > 0)
+ 765              		.loc 1 195 1 is_stmt 0 view .LVU211
+ 766 0000 30B5     		push	{r4, r5, lr}
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 23
+
+
+ 767              	.LCFI11:
+ 768              		.cfi_def_cfa_offset 12
+ 769              		.cfi_offset 4, -12
+ 770              		.cfi_offset 5, -8
+ 771              		.cfi_offset 14, -4
+ 772 0002 85B0     		sub	sp, sp, #20
+ 773              	.LCFI12:
+ 774              		.cfi_def_cfa_offset 32
+ 775 0004 0446     		mov	r4, r0
+ 776 0006 04A8     		add	r0, sp, #16
+ 777              	.LVL61:
+ 195:Core/Src/MQTTPacket.c **** 	if (mqttstring.lenstring.len > 0)
+ 778              		.loc 1 195 1 view .LVU212
+ 779 0008 00E90E00 		stmdb	r0, {r1, r2, r3}
+ 196:Core/Src/MQTTPacket.c **** 	{
+ 780              		.loc 1 196 2 is_stmt 1 view .LVU213
+ 196:Core/Src/MQTTPacket.c **** 	{
+ 781              		.loc 1 196 5 is_stmt 0 view .LVU214
+ 782 000c 002A     		cmp	r2, #0
+ 783 000e 05DC     		bgt	.L55
+ 202:Core/Src/MQTTPacket.c **** 		writeCString(pptr, mqttstring.cstring);
+ 784              		.loc 1 202 7 is_stmt 1 view .LVU215
+ 202:Core/Src/MQTTPacket.c **** 		writeCString(pptr, mqttstring.cstring);
+ 785              		.loc 1 202 21 is_stmt 0 view .LVU216
+ 786 0010 0199     		ldr	r1, [sp, #4]
+ 202:Core/Src/MQTTPacket.c **** 		writeCString(pptr, mqttstring.cstring);
+ 787              		.loc 1 202 10 view .LVU217
+ 788 0012 91B1     		cbz	r1, .L53
+ 203:Core/Src/MQTTPacket.c **** 	else
+ 789              		.loc 1 203 3 is_stmt 1 view .LVU218
+ 790 0014 2046     		mov	r0, r4
+ 791 0016 FFF7FEFF 		bl	writeCString
+ 792              	.LVL62:
+ 793 001a 0CE0     		b	.L50
+ 794              	.L55:
+ 795 001c 1546     		mov	r5, r2
+ 198:Core/Src/MQTTPacket.c **** 		memcpy(*pptr, mqttstring.lenstring.data, mqttstring.lenstring.len);
+ 796              		.loc 1 198 3 view .LVU219
+ 797 001e 1146     		mov	r1, r2
+ 798 0020 2046     		mov	r0, r4
+ 799 0022 FFF7FEFF 		bl	writeInt
+ 800              	.LVL63:
+ 199:Core/Src/MQTTPacket.c **** 		*pptr += mqttstring.lenstring.len;
+ 801              		.loc 1 199 3 view .LVU220
+ 802 0026 2A46     		mov	r2, r5
+ 803 0028 0399     		ldr	r1, [sp, #12]
+ 804 002a 2068     		ldr	r0, [r4]
+ 805 002c FFF7FEFF 		bl	memcpy
+ 806              	.LVL64:
+ 200:Core/Src/MQTTPacket.c **** 	}
+ 807              		.loc 1 200 3 view .LVU221
+ 200:Core/Src/MQTTPacket.c **** 	}
+ 808              		.loc 1 200 9 is_stmt 0 view .LVU222
+ 809 0030 2368     		ldr	r3, [r4]
+ 810 0032 2B44     		add	r3, r3, r5
+ 811 0034 2360     		str	r3, [r4]
+ 812              	.L50:
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 24
+
+
+ 206:Core/Src/MQTTPacket.c **** 
+ 813              		.loc 1 206 1 view .LVU223
+ 814 0036 05B0     		add	sp, sp, #20
+ 815              	.LCFI13:
+ 816              		.cfi_remember_state
+ 817              		.cfi_def_cfa_offset 12
+ 818              		@ sp needed
+ 819 0038 30BD     		pop	{r4, r5, pc}
+ 820              	.LVL65:
+ 821              	.L53:
+ 822              	.LCFI14:
+ 823              		.cfi_restore_state
+ 205:Core/Src/MQTTPacket.c **** }
+ 824              		.loc 1 205 3 is_stmt 1 view .LVU224
+ 825 003a 0021     		movs	r1, #0
+ 826 003c 2046     		mov	r0, r4
+ 827 003e FFF7FEFF 		bl	writeInt
+ 828              	.LVL66:
+ 206:Core/Src/MQTTPacket.c **** 
+ 829              		.loc 1 206 1 is_stmt 0 view .LVU225
+ 830 0042 F8E7     		b	.L50
+ 831              		.cfi_endproc
+ 832              	.LFE14:
+ 834              		.section	.text.readMQTTLenString,"ax",%progbits
+ 835              		.align	1
+ 836              		.global	readMQTTLenString
+ 837              		.syntax unified
+ 838              		.thumb
+ 839              		.thumb_func
+ 841              	readMQTTLenString:
+ 842              	.LVL67:
+ 843              	.LFB15:
+ 216:Core/Src/MQTTPacket.c **** 	int rc = 0;
+ 844              		.loc 1 216 1 is_stmt 1 view -0
+ 845              		.cfi_startproc
+ 846              		@ args = 0, pretend = 0, frame = 0
+ 847              		@ frame_needed = 0, uses_anonymous_args = 0
+ 216:Core/Src/MQTTPacket.c **** 	int rc = 0;
+ 848              		.loc 1 216 1 is_stmt 0 view .LVU227
+ 849 0000 70B5     		push	{r4, r5, r6, lr}
+ 850              	.LCFI15:
+ 851              		.cfi_def_cfa_offset 16
+ 852              		.cfi_offset 4, -16
+ 853              		.cfi_offset 5, -12
+ 854              		.cfi_offset 6, -8
+ 855              		.cfi_offset 14, -4
+ 856 0002 0546     		mov	r5, r0
+ 217:Core/Src/MQTTPacket.c **** 
+ 857              		.loc 1 217 2 is_stmt 1 view .LVU228
+ 858              	.LVL68:
+ 219:Core/Src/MQTTPacket.c **** 	/* the first two bytes are the length of the string */
+ 859              		.loc 1 219 12 view .LVU229
+ 221:Core/Src/MQTTPacket.c **** 	{
+ 860              		.loc 1 221 2 view .LVU230
+ 221:Core/Src/MQTTPacket.c **** 	{
+ 861              		.loc 1 221 17 is_stmt 0 view .LVU231
+ 862 0004 0B68     		ldr	r3, [r1]
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 25
+
+
+ 221:Core/Src/MQTTPacket.c **** 	{
+ 863              		.loc 1 221 14 view .LVU232
+ 864 0006 D31A     		subs	r3, r2, r3
+ 221:Core/Src/MQTTPacket.c **** 	{
+ 865              		.loc 1 221 5 view .LVU233
+ 866 0008 012B     		cmp	r3, #1
+ 867 000a 03DC     		bgt	.L61
+ 217:Core/Src/MQTTPacket.c **** 
+ 868              		.loc 1 217 6 view .LVU234
+ 869 000c 0020     		movs	r0, #0
+ 870              	.LVL69:
+ 871              	.L57:
+ 231:Core/Src/MQTTPacket.c **** 	FUNC_EXIT_RC(rc);
+ 872              		.loc 1 231 2 is_stmt 1 view .LVU235
+ 231:Core/Src/MQTTPacket.c **** 	FUNC_EXIT_RC(rc);
+ 873              		.loc 1 231 22 is_stmt 0 view .LVU236
+ 874 000e 0023     		movs	r3, #0
+ 875 0010 2B60     		str	r3, [r5]
+ 232:Core/Src/MQTTPacket.c **** 	return rc;
+ 876              		.loc 1 232 18 is_stmt 1 view .LVU237
+ 233:Core/Src/MQTTPacket.c **** }
+ 877              		.loc 1 233 2 view .LVU238
+ 234:Core/Src/MQTTPacket.c **** 
+ 878              		.loc 1 234 1 is_stmt 0 view .LVU239
+ 879 0012 70BD     		pop	{r4, r5, r6, pc}
+ 880              	.LVL70:
+ 881              	.L61:
+ 234:Core/Src/MQTTPacket.c **** 
+ 882              		.loc 1 234 1 view .LVU240
+ 883 0014 0C46     		mov	r4, r1
+ 884 0016 1646     		mov	r6, r2
+ 223:Core/Src/MQTTPacket.c **** 		if (&(*pptr)[mqttstring->lenstring.len] <= enddata)
+ 885              		.loc 1 223 3 is_stmt 1 view .LVU241
+ 223:Core/Src/MQTTPacket.c **** 		if (&(*pptr)[mqttstring->lenstring.len] <= enddata)
+ 886              		.loc 1 223 31 is_stmt 0 view .LVU242
+ 887 0018 0846     		mov	r0, r1
+ 888              	.LVL71:
+ 223:Core/Src/MQTTPacket.c **** 		if (&(*pptr)[mqttstring->lenstring.len] <= enddata)
+ 889              		.loc 1 223 31 view .LVU243
+ 890 001a FFF7FEFF 		bl	readInt
+ 891              	.LVL72:
+ 223:Core/Src/MQTTPacket.c **** 		if (&(*pptr)[mqttstring->lenstring.len] <= enddata)
+ 892              		.loc 1 223 29 view .LVU244
+ 893 001e 6860     		str	r0, [r5, #4]
+ 224:Core/Src/MQTTPacket.c **** 		{
+ 894              		.loc 1 224 3 is_stmt 1 view .LVU245
+ 224:Core/Src/MQTTPacket.c **** 		{
+ 895              		.loc 1 224 9 is_stmt 0 view .LVU246
+ 896 0020 2368     		ldr	r3, [r4]
+ 224:Core/Src/MQTTPacket.c **** 		{
+ 897              		.loc 1 224 7 view .LVU247
+ 898 0022 1844     		add	r0, r0, r3
+ 224:Core/Src/MQTTPacket.c **** 		{
+ 899              		.loc 1 224 6 view .LVU248
+ 900 0024 B042     		cmp	r0, r6
+ 901 0026 03D8     		bhi	.L59
+ 226:Core/Src/MQTTPacket.c **** 			*pptr += mqttstring->lenstring.len;
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 26
+
+
+ 902              		.loc 1 226 4 is_stmt 1 view .LVU249
+ 226:Core/Src/MQTTPacket.c **** 			*pptr += mqttstring->lenstring.len;
+ 903              		.loc 1 226 31 is_stmt 0 view .LVU250
+ 904 0028 AB60     		str	r3, [r5, #8]
+ 227:Core/Src/MQTTPacket.c **** 			rc = 1;
+ 905              		.loc 1 227 4 is_stmt 1 view .LVU251
+ 227:Core/Src/MQTTPacket.c **** 			rc = 1;
+ 906              		.loc 1 227 10 is_stmt 0 view .LVU252
+ 907 002a 2060     		str	r0, [r4]
+ 228:Core/Src/MQTTPacket.c **** 		}
+ 908              		.loc 1 228 4 is_stmt 1 view .LVU253
+ 909              	.LVL73:
+ 228:Core/Src/MQTTPacket.c **** 		}
+ 910              		.loc 1 228 7 is_stmt 0 view .LVU254
+ 911 002c 0120     		movs	r0, #1
+ 912 002e EEE7     		b	.L57
+ 913              	.LVL74:
+ 914              	.L59:
+ 217:Core/Src/MQTTPacket.c **** 
+ 915              		.loc 1 217 6 view .LVU255
+ 916 0030 0020     		movs	r0, #0
+ 917 0032 ECE7     		b	.L57
+ 918              		.cfi_endproc
+ 919              	.LFE15:
+ 921              		.section	.text.MQTTstrlen,"ax",%progbits
+ 922              		.align	1
+ 923              		.global	MQTTstrlen
+ 924              		.syntax unified
+ 925              		.thumb
+ 926              		.thumb_func
+ 928              	MQTTstrlen:
+ 929              	.LFB16:
+ 243:Core/Src/MQTTPacket.c **** 	int rc = 0;
+ 930              		.loc 1 243 1 is_stmt 1 view -0
+ 931              		.cfi_startproc
+ 932              		@ args = 0, pretend = 0, frame = 16
+ 933              		@ frame_needed = 0, uses_anonymous_args = 0
+ 934 0000 00B5     		push	{lr}
+ 935              	.LCFI16:
+ 936              		.cfi_def_cfa_offset 4
+ 937              		.cfi_offset 14, -4
+ 938 0002 85B0     		sub	sp, sp, #20
+ 939              	.LCFI17:
+ 940              		.cfi_def_cfa_offset 24
+ 941 0004 04AB     		add	r3, sp, #16
+ 942 0006 03E90700 		stmdb	r3, {r0, r1, r2}
+ 244:Core/Src/MQTTPacket.c **** 
+ 943              		.loc 1 244 2 view .LVU257
+ 944              	.LVL75:
+ 246:Core/Src/MQTTPacket.c **** 		rc = strlen(mqttstring.cstring);
+ 945              		.loc 1 246 2 view .LVU258
+ 246:Core/Src/MQTTPacket.c **** 		rc = strlen(mqttstring.cstring);
+ 946              		.loc 1 246 5 is_stmt 0 view .LVU259
+ 947 000a 20B1     		cbz	r0, .L63
+ 247:Core/Src/MQTTPacket.c **** 	else
+ 948              		.loc 1 247 3 is_stmt 1 view .LVU260
+ 247:Core/Src/MQTTPacket.c **** 	else
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 27
+
+
+ 949              		.loc 1 247 8 is_stmt 0 view .LVU261
+ 950 000c FFF7FEFF 		bl	strlen
+ 951              	.LVL76:
+ 952              	.L62:
+ 251:Core/Src/MQTTPacket.c **** 
+ 953              		.loc 1 251 1 view .LVU262
+ 954 0010 05B0     		add	sp, sp, #20
+ 955              	.LCFI18:
+ 956              		.cfi_remember_state
+ 957              		.cfi_def_cfa_offset 4
+ 958              		@ sp needed
+ 959 0012 5DF804FB 		ldr	pc, [sp], #4
+ 960              	.LVL77:
+ 961              	.L63:
+ 962              	.LCFI19:
+ 963              		.cfi_restore_state
+ 249:Core/Src/MQTTPacket.c **** 	return rc;
+ 964              		.loc 1 249 3 is_stmt 1 view .LVU263
+ 249:Core/Src/MQTTPacket.c **** 	return rc;
+ 965              		.loc 1 249 6 is_stmt 0 view .LVU264
+ 966 0016 0298     		ldr	r0, [sp, #8]
+ 967              	.LVL78:
+ 250:Core/Src/MQTTPacket.c **** }
+ 968              		.loc 1 250 2 is_stmt 1 view .LVU265
+ 250:Core/Src/MQTTPacket.c **** }
+ 969              		.loc 1 250 9 is_stmt 0 view .LVU266
+ 970 0018 FAE7     		b	.L62
+ 971              		.cfi_endproc
+ 972              	.LFE16:
+ 974              		.section	.text.MQTTPacket_equals,"ax",%progbits
+ 975              		.align	1
+ 976              		.global	MQTTPacket_equals
+ 977              		.syntax unified
+ 978              		.thumb
+ 979              		.thumb_func
+ 981              	MQTTPacket_equals:
+ 982              	.LVL79:
+ 983              	.LFB17:
+ 261:Core/Src/MQTTPacket.c **** 	int alen = 0,
+ 984              		.loc 1 261 1 is_stmt 1 view -0
+ 985              		.cfi_startproc
+ 986              		@ args = 0, pretend = 0, frame = 0
+ 987              		@ frame_needed = 0, uses_anonymous_args = 0
+ 261:Core/Src/MQTTPacket.c **** 	int alen = 0,
+ 988              		.loc 1 261 1 is_stmt 0 view .LVU268
+ 989 0000 70B5     		push	{r4, r5, r6, lr}
+ 990              	.LCFI20:
+ 991              		.cfi_def_cfa_offset 16
+ 992              		.cfi_offset 4, -16
+ 993              		.cfi_offset 5, -12
+ 994              		.cfi_offset 6, -8
+ 995              		.cfi_offset 14, -4
+ 996 0002 0C46     		mov	r4, r1
+ 262:Core/Src/MQTTPacket.c **** 		blen = 0;
+ 997              		.loc 1 262 2 is_stmt 1 view .LVU269
+ 998              	.LVL80:
+ 264:Core/Src/MQTTPacket.c **** 	
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 28
+
+
+ 999              		.loc 1 264 2 view .LVU270
+ 266:Core/Src/MQTTPacket.c **** 	{
+ 1000              		.loc 1 266 2 view .LVU271
+ 266:Core/Src/MQTTPacket.c **** 	{
+ 1001              		.loc 1 266 7 is_stmt 0 view .LVU272
+ 1002 0004 0668     		ldr	r6, [r0]
+ 266:Core/Src/MQTTPacket.c **** 	{
+ 1003              		.loc 1 266 5 view .LVU273
+ 1004 0006 56B1     		cbz	r6, .L67
+ 268:Core/Src/MQTTPacket.c **** 		alen = strlen(a->cstring);
+ 1005              		.loc 1 268 3 is_stmt 1 view .LVU274
+ 1006              	.LVL81:
+ 269:Core/Src/MQTTPacket.c **** 	}
+ 1007              		.loc 1 269 3 view .LVU275
+ 269:Core/Src/MQTTPacket.c **** 	}
+ 1008              		.loc 1 269 10 is_stmt 0 view .LVU276
+ 1009 0008 3046     		mov	r0, r6
+ 1010              	.LVL82:
+ 269:Core/Src/MQTTPacket.c **** 	}
+ 1011              		.loc 1 269 10 view .LVU277
+ 1012 000a FFF7FEFF 		bl	strlen
+ 1013              	.LVL83:
+ 269:Core/Src/MQTTPacket.c **** 	}
+ 1014              		.loc 1 269 8 view .LVU278
+ 1015 000e 0546     		mov	r5, r0
+ 1016              	.LVL84:
+ 1017              	.L68:
+ 276:Core/Src/MQTTPacket.c **** 	
+ 1018              		.loc 1 276 2 is_stmt 1 view .LVU279
+ 276:Core/Src/MQTTPacket.c **** 	
+ 1019              		.loc 1 276 9 is_stmt 0 view .LVU280
+ 1020 0010 2046     		mov	r0, r4
+ 1021 0012 FFF7FEFF 		bl	strlen
+ 1022              	.LVL85:
+ 278:Core/Src/MQTTPacket.c **** }
+ 1023              		.loc 1 278 2 is_stmt 1 view .LVU281
+ 278:Core/Src/MQTTPacket.c **** }
+ 1024              		.loc 1 278 24 is_stmt 0 view .LVU282
+ 1025 0016 8542     		cmp	r5, r0
+ 1026 0018 04D0     		beq	.L73
+ 278:Core/Src/MQTTPacket.c **** }
+ 1027              		.loc 1 278 24 view .LVU283
+ 1028 001a 0020     		movs	r0, #0
+ 1029              	.LVL86:
+ 1030              	.L66:
+ 279:Core/Src/MQTTPacket.c **** 
+ 1031              		.loc 1 279 1 view .LVU284
+ 1032 001c 70BD     		pop	{r4, r5, r6, pc}
+ 1033              	.LVL87:
+ 1034              	.L67:
+ 273:Core/Src/MQTTPacket.c **** 		alen = a->lenstring.len;
+ 1035              		.loc 1 273 3 is_stmt 1 view .LVU285
+ 273:Core/Src/MQTTPacket.c **** 		alen = a->lenstring.len;
+ 1036              		.loc 1 273 8 is_stmt 0 view .LVU286
+ 1037 001e 8668     		ldr	r6, [r0, #8]
+ 1038              	.LVL88:
+ 274:Core/Src/MQTTPacket.c **** 	}
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 29
+
+
+ 1039              		.loc 1 274 3 is_stmt 1 view .LVU287
+ 274:Core/Src/MQTTPacket.c **** 	}
+ 1040              		.loc 1 274 8 is_stmt 0 view .LVU288
+ 1041 0020 4568     		ldr	r5, [r0, #4]
+ 1042              	.LVL89:
+ 274:Core/Src/MQTTPacket.c **** 	}
+ 1043              		.loc 1 274 8 view .LVU289
+ 1044 0022 F5E7     		b	.L68
+ 1045              	.LVL90:
+ 1046              	.L73:
+ 278:Core/Src/MQTTPacket.c **** }
+ 1047              		.loc 1 278 28 discriminator 1 view .LVU290
+ 1048 0024 2A46     		mov	r2, r5
+ 1049 0026 2146     		mov	r1, r4
+ 1050 0028 3046     		mov	r0, r6
+ 1051              	.LVL91:
+ 278:Core/Src/MQTTPacket.c **** }
+ 1052              		.loc 1 278 28 discriminator 1 view .LVU291
+ 1053 002a FFF7FEFF 		bl	strncmp
+ 1054              	.LVL92:
+ 278:Core/Src/MQTTPacket.c **** }
+ 1055              		.loc 1 278 24 discriminator 1 view .LVU292
+ 1056 002e 08B1     		cbz	r0, .L71
+ 278:Core/Src/MQTTPacket.c **** }
+ 1057              		.loc 1 278 24 view .LVU293
+ 1058 0030 0020     		movs	r0, #0
+ 1059 0032 F3E7     		b	.L66
+ 1060              	.L71:
+ 1061 0034 0120     		movs	r0, #1
+ 1062 0036 F1E7     		b	.L66
+ 1063              		.cfi_endproc
+ 1064              	.LFE17:
+ 1066              		.section	.text.MQTTPacket_read,"ax",%progbits
+ 1067              		.align	1
+ 1068              		.global	MQTTPacket_read
+ 1069              		.syntax unified
+ 1070              		.thumb
+ 1071              		.thumb_func
+ 1073              	MQTTPacket_read:
+ 1074              	.LVL93:
+ 1075              	.LFB18:
+ 291:Core/Src/MQTTPacket.c **** 	int rc = -1;
+ 1076              		.loc 1 291 1 is_stmt 1 view -0
+ 1077              		.cfi_startproc
+ 1078              		@ args = 0, pretend = 0, frame = 8
+ 1079              		@ frame_needed = 0, uses_anonymous_args = 0
+ 291:Core/Src/MQTTPacket.c **** 	int rc = -1;
+ 1080              		.loc 1 291 1 is_stmt 0 view .LVU295
+ 1081 0000 70B5     		push	{r4, r5, r6, lr}
+ 1082              	.LCFI21:
+ 1083              		.cfi_def_cfa_offset 16
+ 1084              		.cfi_offset 4, -16
+ 1085              		.cfi_offset 5, -12
+ 1086              		.cfi_offset 6, -8
+ 1087              		.cfi_offset 14, -4
+ 1088 0002 82B0     		sub	sp, sp, #8
+ 1089              	.LCFI22:
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 30
+
+
+ 1090              		.cfi_def_cfa_offset 24
+ 1091 0004 0546     		mov	r5, r0
+ 1092 0006 0E46     		mov	r6, r1
+ 1093 0008 1446     		mov	r4, r2
+ 292:Core/Src/MQTTPacket.c **** 	MQTTHeader header = {0};
+ 1094              		.loc 1 292 2 is_stmt 1 view .LVU296
+ 1095              	.LVL94:
+ 293:Core/Src/MQTTPacket.c **** 	int len = 0;
+ 1096              		.loc 1 293 2 view .LVU297
+ 293:Core/Src/MQTTPacket.c **** 	int len = 0;
+ 1097              		.loc 1 293 13 is_stmt 0 view .LVU298
+ 1098 000a 0023     		movs	r3, #0
+ 1099              	.LVL95:
+ 294:Core/Src/MQTTPacket.c **** 	int rem_len = 0;
+ 1100              		.loc 1 294 2 is_stmt 1 view .LVU299
+ 295:Core/Src/MQTTPacket.c **** 
+ 1101              		.loc 1 295 2 view .LVU300
+ 295:Core/Src/MQTTPacket.c **** 
+ 1102              		.loc 1 295 6 is_stmt 0 view .LVU301
+ 1103 000c 0193     		str	r3, [sp, #4]
+ 298:Core/Src/MQTTPacket.c **** 		goto exit;
+ 1104              		.loc 1 298 2 is_stmt 1 view .LVU302
+ 298:Core/Src/MQTTPacket.c **** 		goto exit;
+ 1105              		.loc 1 298 7 is_stmt 0 view .LVU303
+ 1106 000e 0121     		movs	r1, #1
+ 1107              	.LVL96:
+ 298:Core/Src/MQTTPacket.c **** 		goto exit;
+ 1108              		.loc 1 298 7 view .LVU304
+ 1109 0010 9047     		blx	r2
+ 1110              	.LVL97:
+ 298:Core/Src/MQTTPacket.c **** 		goto exit;
+ 1111              		.loc 1 298 5 view .LVU305
+ 1112 0012 0128     		cmp	r0, #1
+ 1113 0014 16D1     		bne	.L77
+ 301:Core/Src/MQTTPacket.c **** 	/* 2. read the remaining length.  This is variable in itself */
+ 1114              		.loc 1 301 2 is_stmt 1 view .LVU306
+ 1115              	.LVL98:
+ 303:Core/Src/MQTTPacket.c **** 	len += MQTTPacket_encode(buf + 1, rem_len); /* put the original remaining length back into the buf
+ 1116              		.loc 1 303 2 view .LVU307
+ 1117 0016 01A9     		add	r1, sp, #4
+ 1118 0018 2046     		mov	r0, r4
+ 1119 001a FFF7FEFF 		bl	MQTTPacket_decode
+ 1120              	.LVL99:
+ 304:Core/Src/MQTTPacket.c **** 
+ 1121              		.loc 1 304 2 view .LVU308
+ 304:Core/Src/MQTTPacket.c **** 
+ 1122              		.loc 1 304 9 is_stmt 0 view .LVU309
+ 1123 001e 0199     		ldr	r1, [sp, #4]
+ 1124 0020 681C     		adds	r0, r5, #1
+ 1125 0022 FFF7FEFF 		bl	MQTTPacket_encode
+ 1126              	.LVL100:
+ 304:Core/Src/MQTTPacket.c **** 
+ 1127              		.loc 1 304 6 view .LVU310
+ 1128 0026 0130     		adds	r0, r0, #1
+ 1129              	.LVL101:
+ 307:Core/Src/MQTTPacket.c **** 		goto exit;
+ 1130              		.loc 1 307 2 is_stmt 1 view .LVU311
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 31
+
+
+ 307:Core/Src/MQTTPacket.c **** 		goto exit;
+ 1131              		.loc 1 307 14 is_stmt 0 view .LVU312
+ 1132 0028 0199     		ldr	r1, [sp, #4]
+ 1133 002a 0B18     		adds	r3, r1, r0
+ 307:Core/Src/MQTTPacket.c **** 		goto exit;
+ 1134              		.loc 1 307 4 view .LVU313
+ 1135 002c B342     		cmp	r3, r6
+ 1136 002e 0CDC     		bgt	.L78
+ 309:Core/Src/MQTTPacket.c **** 		goto exit;
+ 1137              		.loc 1 309 2 is_stmt 1 view .LVU314
+ 309:Core/Src/MQTTPacket.c **** 		goto exit;
+ 1138              		.loc 1 309 5 is_stmt 0 view .LVU315
+ 1139 0030 21B1     		cbz	r1, .L76
+ 309:Core/Src/MQTTPacket.c **** 		goto exit;
+ 1140              		.loc 1 309 19 discriminator 1 view .LVU316
+ 1141 0032 2844     		add	r0, r0, r5
+ 1142              	.LVL102:
+ 309:Core/Src/MQTTPacket.c **** 		goto exit;
+ 1143              		.loc 1 309 19 discriminator 1 view .LVU317
+ 1144 0034 A047     		blx	r4
+ 1145              	.LVL103:
+ 309:Core/Src/MQTTPacket.c **** 		goto exit;
+ 1146              		.loc 1 309 47 discriminator 1 view .LVU318
+ 1147 0036 019B     		ldr	r3, [sp, #4]
+ 309:Core/Src/MQTTPacket.c **** 		goto exit;
+ 1148              		.loc 1 309 14 discriminator 1 view .LVU319
+ 1149 0038 9842     		cmp	r0, r3
+ 1150 003a 09D1     		bne	.L79
+ 1151              	.L76:
+ 312:Core/Src/MQTTPacket.c **** 	rc = header.bits.type;
+ 1152              		.loc 1 312 2 is_stmt 1 view .LVU320
+ 312:Core/Src/MQTTPacket.c **** 	rc = header.bits.type;
+ 1153              		.loc 1 312 19 is_stmt 0 view .LVU321
+ 1154 003c 2878     		ldrb	r0, [r5]	@ zero_extendqisi2
+ 313:Core/Src/MQTTPacket.c **** exit:
+ 1155              		.loc 1 313 2 is_stmt 1 view .LVU322
+ 313:Core/Src/MQTTPacket.c **** exit:
+ 1156              		.loc 1 313 18 is_stmt 0 view .LVU323
+ 1157 003e 0009     		lsrs	r0, r0, #4
+ 1158              	.LVL104:
+ 1159              	.L74:
+ 316:Core/Src/MQTTPacket.c **** 
+ 1160              		.loc 1 316 1 view .LVU324
+ 1161 0040 02B0     		add	sp, sp, #8
+ 1162              	.LCFI23:
+ 1163              		.cfi_remember_state
+ 1164              		.cfi_def_cfa_offset 16
+ 1165              		@ sp needed
+ 1166 0042 70BD     		pop	{r4, r5, r6, pc}
+ 1167              	.LVL105:
+ 1168              	.L77:
+ 1169              	.LCFI24:
+ 1170              		.cfi_restore_state
+ 292:Core/Src/MQTTPacket.c **** 	MQTTHeader header = {0};
+ 1171              		.loc 1 292 6 view .LVU325
+ 1172 0044 4FF0FF30 		mov	r0, #-1
+ 1173 0048 FAE7     		b	.L74
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 32
+
+
+ 1174              	.LVL106:
+ 1175              	.L78:
+ 292:Core/Src/MQTTPacket.c **** 	MQTTHeader header = {0};
+ 1176              		.loc 1 292 6 view .LVU326
+ 1177 004a 4FF0FF30 		mov	r0, #-1
+ 1178              	.LVL107:
+ 292:Core/Src/MQTTPacket.c **** 	MQTTHeader header = {0};
+ 1179              		.loc 1 292 6 view .LVU327
+ 1180 004e F7E7     		b	.L74
+ 1181              	.L79:
+ 1182 0050 4FF0FF30 		mov	r0, #-1
+ 1183              	.L75:
+ 315:Core/Src/MQTTPacket.c **** }
+ 1184              		.loc 1 315 2 is_stmt 1 view .LVU328
+ 315:Core/Src/MQTTPacket.c **** }
+ 1185              		.loc 1 315 9 is_stmt 0 view .LVU329
+ 1186 0054 F4E7     		b	.L74
+ 1187              		.cfi_endproc
+ 1188              	.LFE18:
+ 1190              		.section	.text.MQTTPacket_readnb,"ax",%progbits
+ 1191              		.align	1
+ 1192              		.global	MQTTPacket_readnb
+ 1193              		.syntax unified
+ 1194              		.thumb
+ 1195              		.thumb_func
+ 1197              	MQTTPacket_readnb:
+ 1198              	.LVL108:
+ 1199              	.LFB20:
+ 353:Core/Src/MQTTPacket.c **** 
+ 354:Core/Src/MQTTPacket.c **** /**
+ 355:Core/Src/MQTTPacket.c ****  * Helper function to read packet data from some source into a buffer, non-blocking
+ 356:Core/Src/MQTTPacket.c ****  * @param buf the buffer into which the packet will be serialized
+ 357:Core/Src/MQTTPacket.c ****  * @param buflen the length in bytes of the supplied buffer
+ 358:Core/Src/MQTTPacket.c ****  * @param trp pointer to a transport structure holding what is needed to solve getting data from it
+ 359:Core/Src/MQTTPacket.c ****  * @return integer MQTT packet type, 0 for call again, or -1 on error
+ 360:Core/Src/MQTTPacket.c ****  * @note  the whole message must fit into the caller's buffer
+ 361:Core/Src/MQTTPacket.c ****  */
+ 362:Core/Src/MQTTPacket.c **** int MQTTPacket_readnb(unsigned char* buf, int buflen, MQTTTransport *trp)
+ 363:Core/Src/MQTTPacket.c **** {
+ 1200              		.loc 1 363 1 is_stmt 1 view -0
+ 1201              		.cfi_startproc
+ 1202              		@ args = 0, pretend = 0, frame = 0
+ 1203              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1204              		.loc 1 363 1 is_stmt 0 view .LVU331
+ 1205 0000 70B5     		push	{r4, r5, r6, lr}
+ 1206              	.LCFI25:
+ 1207              		.cfi_def_cfa_offset 16
+ 1208              		.cfi_offset 4, -16
+ 1209              		.cfi_offset 5, -12
+ 1210              		.cfi_offset 6, -8
+ 1211              		.cfi_offset 14, -4
+ 1212 0002 0546     		mov	r5, r0
+ 1213 0004 0E46     		mov	r6, r1
+ 1214 0006 1446     		mov	r4, r2
+ 364:Core/Src/MQTTPacket.c **** 	int rc = -1, frc;
+ 1215              		.loc 1 364 2 is_stmt 1 view .LVU332
+ 1216              	.LVL109:
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 33
+
+
+ 365:Core/Src/MQTTPacket.c **** 	MQTTHeader header = {0};
+ 1217              		.loc 1 365 2 view .LVU333
+ 366:Core/Src/MQTTPacket.c **** 
+ 367:Core/Src/MQTTPacket.c **** 	switch(trp->state){
+ 1218              		.loc 1 367 2 view .LVU334
+ 1219              		.loc 1 367 12 is_stmt 0 view .LVU335
+ 1220 0008 137D     		ldrb	r3, [r2, #20]	@ zero_extendqisi2
+ 1221              		.loc 1 367 2 view .LVU336
+ 1222 000a 012B     		cmp	r3, #1
+ 1223 000c 12D0     		beq	.L82
+ 1224 000e 022B     		cmp	r3, #2
+ 1225 0010 24D0     		beq	.L83
+ 1226 0012 0BB1     		cbz	r3, .L84
+ 368:Core/Src/MQTTPacket.c **** 	default:
+ 369:Core/Src/MQTTPacket.c **** 		trp->state = 0;
+ 1227              		.loc 1 369 3 is_stmt 1 view .LVU337
+ 1228              		.loc 1 369 14 is_stmt 0 view .LVU338
+ 1229 0014 0023     		movs	r3, #0
+ 1230 0016 1375     		strb	r3, [r2, #20]
+ 1231              	.L84:
+ 370:Core/Src/MQTTPacket.c **** 		/*FALLTHROUGH*/
+ 371:Core/Src/MQTTPacket.c **** 	case 0:
+ 372:Core/Src/MQTTPacket.c **** 		/* read the header byte.  This has the packet type in it */
+ 373:Core/Src/MQTTPacket.c **** 		if ((frc=(*trp->getfn)(trp->sck, buf, 1)) == -1)
+ 1232              		.loc 1 373 3 is_stmt 1 view .LVU339
+ 1233              		.loc 1 373 13 is_stmt 0 view .LVU340
+ 1234 0018 2368     		ldr	r3, [r4]
+ 1235 001a 0122     		movs	r2, #1
+ 1236              	.LVL110:
+ 1237              		.loc 1 373 13 view .LVU341
+ 1238 001c 2946     		mov	r1, r5
+ 1239              	.LVL111:
+ 1240              		.loc 1 373 13 view .LVU342
+ 1241 001e 6068     		ldr	r0, [r4, #4]
+ 1242              	.LVL112:
+ 1243              		.loc 1 373 13 view .LVU343
+ 1244 0020 9847     		blx	r3
+ 1245              	.LVL113:
+ 1246              		.loc 1 373 6 view .LVU344
+ 1247 0022 B0F1FF3F 		cmp	r0, #-1
+ 1248 0026 2DD0     		beq	.L85
+ 374:Core/Src/MQTTPacket.c **** 			goto exit;
+ 375:Core/Src/MQTTPacket.c **** 		if (frc == 0)
+ 1249              		.loc 1 375 3 is_stmt 1 view .LVU345
+ 1250              		.loc 1 375 6 is_stmt 0 view .LVU346
+ 1251 0028 70B3     		cbz	r0, .L81
+ 376:Core/Src/MQTTPacket.c **** 			return 0;
+ 377:Core/Src/MQTTPacket.c **** 		trp->len = 0;
+ 1252              		.loc 1 377 3 is_stmt 1 view .LVU347
+ 1253              		.loc 1 377 12 is_stmt 0 view .LVU348
+ 1254 002a 0023     		movs	r3, #0
+ 1255 002c 2361     		str	r3, [r4, #16]
+ 378:Core/Src/MQTTPacket.c **** 		++trp->state;
+ 1256              		.loc 1 378 3 is_stmt 1 view .LVU349
+ 1257              		.loc 1 378 8 is_stmt 0 view .LVU350
+ 1258 002e 237D     		ldrb	r3, [r4, #20]	@ zero_extendqisi2
+ 1259              		.loc 1 378 3 view .LVU351
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 34
+
+
+ 1260 0030 0133     		adds	r3, r3, #1
+ 1261 0032 2375     		strb	r3, [r4, #20]
+ 1262              	.LVL114:
+ 1263              	.L82:
+ 379:Core/Src/MQTTPacket.c **** 		/*FALLTHROUGH*/
+ 380:Core/Src/MQTTPacket.c **** 		/* read the remaining length.  This is variable in itself */
+ 381:Core/Src/MQTTPacket.c **** 	case 1:
+ 382:Core/Src/MQTTPacket.c **** 		if((frc=MQTTPacket_decodenb(trp)) == MQTTPACKET_READ_ERROR)
+ 1264              		.loc 1 382 3 is_stmt 1 view .LVU352
+ 1265              		.loc 1 382 11 is_stmt 0 view .LVU353
+ 1266 0034 2046     		mov	r0, r4
+ 1267 0036 FFF7FEFF 		bl	MQTTPacket_decodenb
+ 1268              	.LVL115:
+ 1269              		.loc 1 382 5 view .LVU354
+ 1270 003a B0F1FF3F 		cmp	r0, #-1
+ 1271 003e 21D0     		beq	.L85
+ 383:Core/Src/MQTTPacket.c **** 			goto exit;
+ 384:Core/Src/MQTTPacket.c **** 		if(frc == 0)
+ 1272              		.loc 1 384 3 is_stmt 1 view .LVU355
+ 1273              		.loc 1 384 5 is_stmt 0 view .LVU356
+ 1274 0040 10B3     		cbz	r0, .L81
+ 385:Core/Src/MQTTPacket.c **** 			return 0;
+ 386:Core/Src/MQTTPacket.c **** 		trp->len = 1 + MQTTPacket_encode(buf + 1, trp->rem_len); /* put the original remaining length bac
+ 1275              		.loc 1 386 3 is_stmt 1 view .LVU357
+ 1276              		.loc 1 386 18 is_stmt 0 view .LVU358
+ 1277 0042 E168     		ldr	r1, [r4, #12]
+ 1278 0044 681C     		adds	r0, r5, #1
+ 1279              	.LVL116:
+ 1280              		.loc 1 386 18 view .LVU359
+ 1281 0046 FFF7FEFF 		bl	MQTTPacket_encode
+ 1282              	.LVL117:
+ 1283              		.loc 1 386 16 view .LVU360
+ 1284 004a 0130     		adds	r0, r0, #1
+ 1285              		.loc 1 386 12 view .LVU361
+ 1286 004c 2061     		str	r0, [r4, #16]
+ 387:Core/Src/MQTTPacket.c **** 		if((trp->rem_len + trp->len) > buflen)
+ 1287              		.loc 1 387 3 is_stmt 1 view .LVU362
+ 1288              		.loc 1 387 10 is_stmt 0 view .LVU363
+ 1289 004e E368     		ldr	r3, [r4, #12]
+ 1290              		.loc 1 387 20 view .LVU364
+ 1291 0050 1844     		add	r0, r0, r3
+ 1292              		.loc 1 387 5 view .LVU365
+ 1293 0052 B042     		cmp	r0, r6
+ 1294 0054 19DC     		bgt	.L88
+ 388:Core/Src/MQTTPacket.c **** 			goto exit;
+ 389:Core/Src/MQTTPacket.c **** 		++trp->state;
+ 1295              		.loc 1 389 3 is_stmt 1 view .LVU366
+ 1296              		.loc 1 389 8 is_stmt 0 view .LVU367
+ 1297 0056 237D     		ldrb	r3, [r4, #20]	@ zero_extendqisi2
+ 1298              		.loc 1 389 3 view .LVU368
+ 1299 0058 0133     		adds	r3, r3, #1
+ 1300 005a 2375     		strb	r3, [r4, #20]
+ 1301              	.L83:
+ 390:Core/Src/MQTTPacket.c **** 		/*FALLTHROUGH*/
+ 391:Core/Src/MQTTPacket.c **** 	case 2:
+ 392:Core/Src/MQTTPacket.c **** 		if(trp->rem_len){
+ 1302              		.loc 1 392 3 is_stmt 1 view .LVU369
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 35
+
+
+ 1303              		.loc 1 392 9 is_stmt 0 view .LVU370
+ 1304 005c E268     		ldr	r2, [r4, #12]
+ 1305              		.loc 1 392 5 view .LVU371
+ 1306 005e 7AB1     		cbz	r2, .L87
+ 393:Core/Src/MQTTPacket.c **** 			/* read the rest of the buffer using a callback to supply the rest of the data */
+ 394:Core/Src/MQTTPacket.c **** 			if ((frc=(*trp->getfn)(trp->sck, buf + trp->len, trp->rem_len)) == -1)
+ 1307              		.loc 1 394 4 is_stmt 1 view .LVU372
+ 1308              		.loc 1 394 46 is_stmt 0 view .LVU373
+ 1309 0060 2169     		ldr	r1, [r4, #16]
+ 1310              		.loc 1 394 14 view .LVU374
+ 1311 0062 2368     		ldr	r3, [r4]
+ 1312 0064 2944     		add	r1, r1, r5
+ 1313 0066 6068     		ldr	r0, [r4, #4]
+ 1314 0068 9847     		blx	r3
+ 1315              	.LVL118:
+ 1316              		.loc 1 394 7 view .LVU375
+ 1317 006a B0F1FF3F 		cmp	r0, #-1
+ 1318 006e 09D0     		beq	.L85
+ 395:Core/Src/MQTTPacket.c **** 				goto exit;
+ 396:Core/Src/MQTTPacket.c **** 			if (frc == 0)
+ 1319              		.loc 1 396 4 is_stmt 1 view .LVU376
+ 1320              		.loc 1 396 7 is_stmt 0 view .LVU377
+ 1321 0070 50B1     		cbz	r0, .L81
+ 397:Core/Src/MQTTPacket.c **** 				return 0;
+ 398:Core/Src/MQTTPacket.c **** 			trp->rem_len -= frc;
+ 1322              		.loc 1 398 4 is_stmt 1 view .LVU378
+ 1323              		.loc 1 398 17 is_stmt 0 view .LVU379
+ 1324 0072 E368     		ldr	r3, [r4, #12]
+ 1325 0074 1B1A     		subs	r3, r3, r0
+ 1326 0076 E360     		str	r3, [r4, #12]
+ 399:Core/Src/MQTTPacket.c **** 			trp->len += frc;
+ 1327              		.loc 1 399 4 is_stmt 1 view .LVU380
+ 1328              		.loc 1 399 13 is_stmt 0 view .LVU381
+ 1329 0078 2269     		ldr	r2, [r4, #16]
+ 1330 007a 1044     		add	r0, r0, r2
+ 1331              	.LVL119:
+ 1332              		.loc 1 399 13 view .LVU382
+ 1333 007c 2061     		str	r0, [r4, #16]
+ 400:Core/Src/MQTTPacket.c **** 			if(trp->rem_len)
+ 1334              		.loc 1 400 4 is_stmt 1 view .LVU383
+ 1335              		.loc 1 400 6 is_stmt 0 view .LVU384
+ 1336 007e 3BB9     		cbnz	r3, .L89
+ 1337              	.L87:
+ 401:Core/Src/MQTTPacket.c **** 				return 0;
+ 402:Core/Src/MQTTPacket.c **** 		}
+ 403:Core/Src/MQTTPacket.c **** 		header.byte = buf[0];
+ 1338              		.loc 1 403 3 is_stmt 1 view .LVU385
+ 1339              		.loc 1 403 20 is_stmt 0 view .LVU386
+ 1340 0080 2878     		ldrb	r0, [r5]	@ zero_extendqisi2
+ 404:Core/Src/MQTTPacket.c **** 		rc = header.bits.type;
+ 1341              		.loc 1 404 3 is_stmt 1 view .LVU387
+ 1342              		.loc 1 404 19 is_stmt 0 view .LVU388
+ 1343 0082 0009     		lsrs	r0, r0, #4
+ 1344              	.LVL120:
+ 405:Core/Src/MQTTPacket.c **** 		break;
+ 1345              		.loc 1 405 3 is_stmt 1 view .LVU389
+ 1346              	.L85:
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 36
+
+
+ 406:Core/Src/MQTTPacket.c **** 	}
+ 407:Core/Src/MQTTPacket.c **** 
+ 408:Core/Src/MQTTPacket.c **** exit:
+ 409:Core/Src/MQTTPacket.c **** 	trp->state = 0;
+ 1347              		.loc 1 409 2 view .LVU390
+ 1348              		.loc 1 409 13 is_stmt 0 view .LVU391
+ 1349 0084 0023     		movs	r3, #0
+ 1350 0086 2375     		strb	r3, [r4, #20]
+ 410:Core/Src/MQTTPacket.c **** 	return rc;
+ 1351              		.loc 1 410 2 is_stmt 1 view .LVU392
+ 1352              	.LVL121:
+ 1353              	.L81:
+ 411:Core/Src/MQTTPacket.c **** }
+ 1354              		.loc 1 411 1 is_stmt 0 view .LVU393
+ 1355 0088 70BD     		pop	{r4, r5, r6, pc}
+ 1356              	.LVL122:
+ 1357              	.L88:
+ 364:Core/Src/MQTTPacket.c **** 	MQTTHeader header = {0};
+ 1358              		.loc 1 364 6 view .LVU394
+ 1359 008a 4FF0FF30 		mov	r0, #-1
+ 1360 008e F9E7     		b	.L85
+ 1361              	.L89:
+ 401:Core/Src/MQTTPacket.c **** 		}
+ 1362              		.loc 1 401 12 view .LVU395
+ 1363 0090 0020     		movs	r0, #0
+ 1364 0092 F9E7     		b	.L81
+ 1365              		.cfi_endproc
+ 1366              	.LFE20:
+ 1368              		.section	.bss.bufptr,"aw",%nobits
+ 1369              		.align	2
+ 1370              		.set	.LANCHOR0,. + 0
+ 1373              	bufptr:
+ 1374 0000 00000000 		.space	4
+ 1375              		.text
+ 1376              	.Letext0:
+ 1377              		.file 2 "Core/Inc/MQTTPacket.h"
+ 1378              		.file 3 "c:\\program files (x86)\\gcc-arm-none-eabi-10.3-2021.10-win32\\gcc-arm-none-eabi-10.3-202
+ 1379              		.file 4 "<built-in>"
+ARM GAS  C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s 			page 37
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 MQTTPacket.c
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:18     .text.bufchar:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:24     .text.bufchar:00000000 bufchar
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:85     .text.bufchar:00000028 $d
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:90     .text.MQTTPacket_decodenb:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:95     .text.MQTTPacket_decodenb:00000000 MQTTPacket_decodenb
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:199    .text.MQTTPacket_encode:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:205    .text.MQTTPacket_encode:00000000 MQTTPacket_encode
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:295    .text.MQTTPacket_decode:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:301    .text.MQTTPacket_decode:00000000 MQTTPacket_decode
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:390    .text.MQTTPacket_len:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:396    .text.MQTTPacket_len:00000000 MQTTPacket_len
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:455    .text.MQTTPacket_len:00000024 $d
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:460    .text.MQTTPacket_decodeBuf:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:466    .text.MQTTPacket_decodeBuf:00000000 MQTTPacket_decodeBuf
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:495    .text.MQTTPacket_decodeBuf:00000010 $d
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:501    .text.readInt:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:507    .text.readInt:00000000 readInt
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:542    .text.readChar:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:548    .text.readChar:00000000 readChar
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:573    .text.writeChar:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:579    .text.writeChar:00000000 writeChar
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:604    .text.writeInt:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:610    .text.writeInt:00000000 writeInt
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:664    .text.writeCString:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:670    .text.writeCString:00000000 writeCString
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:722    .text.getLenStringLen:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:728    .text.getLenStringLen:00000000 getLenStringLen
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:752    .text.writeMQTTString:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:758    .text.writeMQTTString:00000000 writeMQTTString
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:835    .text.readMQTTLenString:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:841    .text.readMQTTLenString:00000000 readMQTTLenString
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:922    .text.MQTTstrlen:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:928    .text.MQTTstrlen:00000000 MQTTstrlen
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:975    .text.MQTTPacket_equals:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:981    .text.MQTTPacket_equals:00000000 MQTTPacket_equals
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:1067   .text.MQTTPacket_read:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:1073   .text.MQTTPacket_read:00000000 MQTTPacket_read
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:1191   .text.MQTTPacket_readnb:00000000 $t
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:1197   .text.MQTTPacket_readnb:00000000 MQTTPacket_readnb
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:1369   .bss.bufptr:00000000 $d
+C:\Users\dung\AppData\Local\Temp\cc0JzqlR.s:1373   .bss.bufptr:00000000 bufptr
+
+UNDEFINED SYMBOLS
+strlen
+memcpy
+strncmp

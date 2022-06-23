@@ -1,0 +1,22 @@
+Change NMEA Port Default Baudrate:
+<baudrate>: NMEA port baudrate. 9600 by default; could be set to 4800, 14400, 19200, 28400, 57600 and 115200.
+	Write command:
+	$PQBAUD,W,<baudrate>*Checksum<CR><LF> 
+	Response:
+	$PQBAUD,W,OK*Checksum<CR><LF>
+	If error:
+	$PQBAUD,W,ERROR*Checksum<CR><LF>
+	
+	Example: Write: $PQBAUD,W,115200*43
+		   Response: $PQBAUD,W,OK*40
+
+Set the Type and Pulse Width of 1PPS's Output
+<type> The type of 1PPS's output: 0 - Disable 1PPS output; 1 - Send 1PPS after the first fix; 2 - Send 1PPS after 3D fix; 3 - Send 1PPS after 2D fix; 4 - Send 1PPS always.
+<width> PPS pulse width in milisecond. Range 2-998.
+	Write command:
+	$PQ1PPS,W,<type>,<width>*Checksum<CR><LF>
+	Response:
+	$PQ1PPS,W,OK*Checksum<CR><LF>
+	If error:
+	$PQ1PPS,W,ERROR*Checksum<CR><LF>
+	
